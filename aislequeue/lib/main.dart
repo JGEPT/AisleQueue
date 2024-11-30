@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'AisleQueue',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
       home: const MyHomePage(title: 'AisleQueue'),
@@ -23,7 +23,6 @@ class MyApp extends StatelessWidget {
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
-
   final String title;
 
   @override
@@ -31,100 +30,158 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final List<Positioned> _placedTiles = [];
-  bool _isDraggingTile = false;
+  final List<PlacedTileData> _placedTiles = [];
+  bool _isPlacementMode = false;
   Offset _currentTilePosition = Offset.zero;
 
-  void _startPlacingTile(TapDownDetails details) {
+  void _togglePlacementMode() {
     setState(() {
-      _isDraggingTile = true;
-      _currentTilePosition = details.globalPosition;
+      _isPlacementMode = !_isPlacementMode;
     });
   }
 
-  void _updateTilePosition(DragUpdateDetails details) {
-    if (_isDraggingTile) {
-      setState(() {
-        _currentTilePosition = details.globalPosition;
-      });
-    }
-  }
-
-  void _placeTile(TapUpDetails details) {
-    if (_isDraggingTile) {
-      setState(() {
-        // Create a new positioned tile at the current position
-        final newTile = Positioned(
-          left: _currentTilePosition.dx - 25, // Adjust to center the tile
-          top: _currentTilePosition.dy - 25,
-          child: Container(
-            width: 50,
-            height: 50,
-            color: Colors.blue.shade300,
-            child: Center(
-              child: Text('${_placedTiles.length + 1}'),
+  Future<void> _showCategoryDialog(BuildContext context) async {
+    final TextEditingController categoryController = TextEditingController();
+    
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Enter Category Name'),
+          content: TextField(
+            controller: categoryController,
+            decoration: const InputDecoration(
+              hintText: 'Enter a category name',
             ),
           ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Add'),
+              onPressed: () {
+                if (categoryController.text.isNotEmpty) {
+                  _placeTile(categoryController.text);
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
         );
+      },
+    );
+  }
 
-        _placedTiles.add(newTile);
-        _isDraggingTile = false;
-      });
-    }
+  void _placeTile(String category) {
+    setState(() {
+      final newTile = PlacedTileData(
+        left: _currentTilePosition.dx - 50,
+        top: _currentTilePosition.dy - 75,
+        category: category,
+      );
+      _placedTiles.add(newTile);
+    });
+  }
+
+  void _updateTilePosition(Offset position) {
+    setState(() {
+      _currentTilePosition = position;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: _startPlacingTile,
-      onPanUpdate: _updateTilePosition,
-      onTapUp: _placeTile,
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Text(widget.title),
-        ),
-        body: Stack(
-          children: [
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  const Text(
-                    'Tap and drag the + button to place a tile',
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(widget.title),
+      ),
+      body: MouseRegion(
+        onHover: (details) => _updateTilePosition(details.position),
+        child: GestureDetector(
+          onTap: _isPlacementMode 
+            ? () => _showCategoryDialog(context)
+            : null,
+          child: Stack(
+            children: [
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      _isPlacementMode 
+                        ? 'Hover and tap to place a tile with a category' 
+                        : 'Toggle placement mode to add tiles',
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            // Add all the placed tiles
-            ..._placedTiles,
-            
-            // Dragging tile
-            if (_isDraggingTile)
-              Positioned(
-                left: _currentTilePosition.dx - 25,
-                top: _currentTilePosition.dy - 25,
-                child: Opacity(
-                  opacity: 0.5,
-                  child: Container(
-                    width: 50,
-                    height: 50,
-                    color: Colors.blue.shade300,
-                    child: Center(
-                      child: Text('${_placedTiles.length + 1}'),
+              // Render placed tiles
+              ..._placedTiles.map((tileData) => Positioned(
+                left: tileData.left,
+                top: tileData.top,
+                child: Container(
+                  width: 100,
+                  height: 50,
+                  color: Colors.blue.shade300,
+                  child: Center(
+                    child: Text(
+                      tileData.category,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                 ),
-              ),
-          ],
+              )),
+              
+              // Preview tile in placement mode
+              if (_isPlacementMode)
+                Positioned(
+                  left: _currentTilePosition.dx - 50,
+                  top: _currentTilePosition.dy - 75,
+                  child: Opacity(
+                    opacity: 0.5,
+                    child: Container(
+                      width: 100,
+                      height: 50,
+                      color: Colors.blue.shade200,
+                      child: const Center(
+                        child: Text(
+                          'New Tile',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {}, // Disabled regular onPressed
-          tooltip: 'Drag to place tile',
-          child: const Icon(Icons.add),
-        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _togglePlacementMode,
+        tooltip: 'Toggle Placement Mode',
+        backgroundColor: _isPlacementMode ? Colors.red : Colors.green,
+        child: Icon(_isPlacementMode ? Icons.close : Icons.add),
       ),
     );
   }
+}
+
+// A data class to store tile information
+class PlacedTileData {
+  final double left;
+  final double top;
+  final String category;
+
+  PlacedTileData({
+    required this.left,
+    required this.top,
+    required this.category,
+  });
 }
