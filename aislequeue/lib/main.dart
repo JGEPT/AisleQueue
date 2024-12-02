@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +12,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'AisleQueue',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
       ),
       home: const MyHomePage(title: 'AisleQueue'),
@@ -32,7 +31,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   // Grid configuration
   static const int gridColumns = 10;
-  static const int gridRows = 8;
+  static const int gridRows = 10;
   static const double gridCellSize = 60; // Size of each grid cell
 
   final List<PlacedTileData> _placedTiles = [];
@@ -111,7 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
       // Calculate grid coordinates based on tap/hover position
       setState(() {
         _currentGridX = (position.dx / gridCellSize).floor();
-        _currentGridY = (position.dy / gridCellSize).floor();
+        _currentGridY = ((position.dy - gridCellSize)/ gridCellSize).floor();
 
         // Ensure coordinates are within grid bounds
         _currentGridX = _currentGridX.clamp(0, gridColumns - 1);
@@ -177,7 +176,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   if (_isPlacementMode)
                     Positioned(
                       left: _currentGridX * gridCellSize,
-                      top: _currentGridY * gridCellSize,
+                      top: (_currentGridY * gridCellSize),
                       child: Opacity(
                         opacity: 0.5,
                         child: Container(
