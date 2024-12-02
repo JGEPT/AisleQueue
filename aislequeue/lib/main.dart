@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'AisleQueue'),
+      home: const MyHomePage(title: "AisleQueue"),
     );
   }
 }
@@ -29,18 +29,60 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // Grid configuration
-  static const int gridColumns = 10;
-  static const int gridRows = 10;
-  static const double gridCellSize = 60; // Size of each grid cell
+  static const int gridColumns = 64;
+  static const int gridRows = 64;
+  static const double gridCellSize = 30;
 
   final List<PlacedTileData> _placedTiles = [];
   bool _isPlacementMode = false;
-  
-  // Grid-based positioning
+
   int _currentGridX = 0;
   int _currentGridY = 0;
 
+  // New variable to track the current scale
+  double _currentScale = 1.0;
+
+  final TransformationController _transformationController =
+      TransformationController();
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Set up a listener for scale changes
+    _transformationController.addListener(_onTransformationChanged);
+  }
+
+  @override
+  void dispose() {
+    // Remove the listener when the widget is disposed
+    _transformationController.removeListener(_onTransformationChanged);
+    _transformationController.dispose();
+    super.dispose();
+  }
+
+  // Method to extract current scale
+  void _onTransformationChanged() {
+    // Extract the scale from the transformation matrix
+    Matrix4 matrix = _transformationController.value;
+    
+    // Extract scale components
+    double scaleX = matrix.getColumn(0).xyz.length;
+    double scaleY = matrix.getColumn(1).xyz.length;
+    
+    // Calculate average scale
+    double newScale = (scaleX + scaleY) / 2;
+    
+    // Update state only if the scale has changed significantly
+    if ((newScale - _currentScale).abs() > 0.01) {
+      setState(() {
+        _currentScale = newScale;
+      });
+      
+      // Optional: Log or perform actions based on scale change
+      print('Current Scale: $_currentScale');
+    }
+  }
   void _togglePlacementMode() {
     setState(() {
       _isPlacementMode = !_isPlacementMode;
@@ -49,7 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _showCategoryDialog(BuildContext context) async {
     final TextEditingController categoryController = TextEditingController();
-    
+
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
@@ -84,9 +126,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _placeTile(String category) {
-    // Check if the current grid position is already occupied
-    bool isOccupied = _placedTiles.any((tile) => 
-      tile.gridX == _currentGridX && tile.gridY == _currentGridY);
+    bool isOccupied = _placedTiles.any((tile) =>
+        tile.gridX == _currentGridX && tile.gridY == _currentGridY);
 
     if (!isOccupied) {
       setState(() {
@@ -98,7 +139,6 @@ class _MyHomePageState extends State<MyHomePage> {
         _placedTiles.add(newTile);
       });
     } else {
-      // Show a snackbar or dialog indicating the grid cell is occupied
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('This grid cell is already occupied')),
       );
@@ -107,12 +147,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _updateGridPosition(Offset position) {
     if (_isPlacementMode) {
-      // Calculate grid coordinates based on tap/hover position
+      // Transform the global cursor position to scene coordinates
+      final Offset localPosition =
+          _transformationController.toScene(position);
+      
       setState(() {
-        _currentGridX = (position.dx / gridCellSize).floor();
-        _currentGridY = ((position.dy - gridCellSize)/ gridCellSize).floor();
+        // Calculate grid coordinates
+        _currentGridX = (localPosition.dx / gridCellSize).floor();
+        _currentGridY = ((localPosition.dy - ((gridCellSize/_currentScale)*1.75))/ gridCellSize).floor();
 
-        // Ensure coordinates are within grid bounds
+        // Clamp the coordinates within the grid
         _currentGridX = _currentGridX.clamp(0, gridColumns - 1);
         _currentGridY = _currentGridY.clamp(0, gridRows - 1);
       });
@@ -124,79 +168,108 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        title: Row(
+          children: [
+            const Icon(Icons.shopping_bag, color: Colors.black),
+            const SizedBox(width: 8),
+            Text(widget.title),
+            // Display current scale in the app bar
+            Text(' (Zoom: ${_currentScale.toStringAsFixed(2)}x)'),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              showSearch(
+                context: context,
+                delegate: CustomSearchDelegate(),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.shopping_cart),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Cart button pressed!')),
+              );
+            },
+          ),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Selected: $value')),
+              );
+            },
+            itemBuilder: (BuildContext context) {
+              return {'Option 1', 'Option 2', 'Option 3'}
+                  .map((String choice) {
+                return PopupMenuItem<String>(
+                  value: choice,
+                  child: Text(choice),
+                );
+              }).toList();
+            },
+          ),
+        ],
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return MouseRegion(
-            onHover: (details) => _updateGridPosition(details.position),
-            child: GestureDetector(
-              onTap: _isPlacementMode 
-                ? () => _showCategoryDialog(context)
-                : null,
-              child: Stack(
-                children: [
-                  // Grid visualization (optional, for debugging)
-                  ..._buildGridLines(constraints),
-
-                  // Instruction text
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _isPlacementMode 
-                            ? 'Hover and tap to place a tile with a category' 
-                            : 'Toggle placement mode to add tiles',
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Render placed tiles
-                  ..._placedTiles.map((tileData) => Positioned(
-                    left: tileData.gridX * gridCellSize,
-                    top: tileData.gridY * gridCellSize,
-                    child: Container(
-                      width: gridCellSize,
-                      height: gridCellSize,
-                      color: Colors.blue.shade300,
-                      child: Center(
-                        child: Text(
-                          tileData.category,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  )),
-                  
-                  // Preview tile in placement mode
-                  if (_isPlacementMode)
-                    Positioned(
-                      left: _currentGridX * gridCellSize,
-                      top: (_currentGridY * gridCellSize),
-                      child: Opacity(
-                        opacity: 0.5,
-                        child: Container(
-                          width: gridCellSize,
-                          height: gridCellSize,
-                          color: Colors.blue.shade200,
-                          child: const Center(
-                            child: Text(
-                              'New Tile',
-                              style: TextStyle(color: Colors.white),
+      body: MouseRegion(
+        onHover: (details) => _updateGridPosition(details.position),
+        child: InteractiveViewer(
+          transformationController: _transformationController,
+          boundaryMargin: const EdgeInsets.all(100),
+          minScale: 0.5,
+          maxScale: 2.0,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return GestureDetector(
+                onTap: _isPlacementMode
+                    ? () => _showCategoryDialog(context)
+                    : null,
+                child: Stack(
+                  children: [
+                    ..._buildGridLines(constraints),
+                    ..._placedTiles.map((tileData) => Positioned(
+                          left: tileData.gridX * gridCellSize,
+                          top: tileData.gridY * gridCellSize,
+                          child: Container(
+                            width: gridCellSize,
+                            height: gridCellSize,
+                            color: Colors.green.shade500,
+                            child: Center(
+                              child: Text(
+                                tileData.category,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        )),
+                    if (_isPlacementMode)
+                      Positioned(
+                        left: _currentGridX * gridCellSize,
+                        top: _currentGridY * gridCellSize,
+                        child: Opacity(
+                          opacity: 0.5,
+                          child: Container(
+                            width: gridCellSize,
+                            height: gridCellSize,
+                            color: Colors.green.shade200,
+                            child: const Center(
+                              child: Text(
+                                'New Tile',
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                ],
-              ),
-            ),
-          );
-        },
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _togglePlacementMode,
@@ -207,12 +280,10 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  // Helper method to draw grid lines (optional, for visualization)
   List<Widget> _buildGridLines(BoxConstraints constraints) {
     List<Widget> gridLines = [];
 
-    // Vertical lines
-    for (int x = 0; x < gridColumns; x++) {
+    for (int x = 0; x <= gridColumns; x++) {
       gridLines.add(
         Positioned(
           left: x * gridCellSize,
@@ -226,8 +297,7 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     }
 
-    // Horizontal lines
-    for (int y = 0; y < gridRows; y++) {
+    for (int y = 0; y <= gridRows; y++) {
       gridLines.add(
         Positioned(
           left: 0,
@@ -245,7 +315,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-// A data class to store tile information
 class PlacedTileData {
   final int gridX;
   final int gridY;
@@ -256,4 +325,51 @@ class PlacedTileData {
     required this.gridY,
     required this.category,
   });
+}
+
+// Custom Search Delegate
+class CustomSearchDelegate extends SearchDelegate<String> {
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      IconButton(
+        icon: const Icon(Icons.clear),
+        onPressed: () {
+          query = '';
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget buildLeading(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed: () {
+        close(context, '');
+      },
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    return Center(
+      child: Text('Search results for "$query"'),
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    return ListView(
+      children: [
+        ListTile(
+          title: Text('Suggestion for "$query"'),
+          onTap: () {
+            query = 'Selected suggestion';
+            showResults(context);
+          },
+        ),
+      ],
+    );
+  }
 }
