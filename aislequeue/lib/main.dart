@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 void main() {
   runApp(const MyApp());
@@ -32,6 +33,7 @@ class _MyHomePageState extends State<MyHomePage> {
   static const int gridColumns = 64;
   static const int gridRows = 64;
   static const double gridCellSize = 30;
+  late String deviceType;
 
   final List<PlacedTileData> _placedTiles = [];
   bool _isPlacementMode = false;
@@ -83,6 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
       print('Current Scale: $_currentScale');
     }
   }
+
   void _togglePlacementMode() {
     setState(() {
       _isPlacementMode = !_isPlacementMode;
@@ -125,6 +128,16 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  String _getDeviceType(BuildContext context) {
+    // Improved device type detection
+    if (kIsWeb) return 'Web';
+    
+    var shortestSide = MediaQuery.of(context).size.shortestSide;
+    if (shortestSide < 600) return 'Phone';
+    if (shortestSide < 1200) return 'Tablet';
+    return 'Desktop';
+  }
+
   void _placeTile(String category) {
     bool isOccupied = _placedTiles.any((tile) =>
         tile.gridX == _currentGridX && tile.gridY == _currentGridY);
@@ -145,7 +158,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void _updateGridPosition(Offset position) {
+  void _updateGridPosition(Offset position, String deviceType) {
     if (_isPlacementMode) {
       // Transform the global cursor position to scene coordinates
       final Offset localPosition =
@@ -154,7 +167,12 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         // Calculate grid coordinates
         _currentGridX = (localPosition.dx / gridCellSize).floor();
-        _currentGridY = ((localPosition.dy - ((gridCellSize/_currentScale)*1.75))/ gridCellSize).floor();
+        if(deviceType == 'Phone'){
+          _currentGridY = ((localPosition.dy - ((gridCellSize/_currentScale)*2.75))/ gridCellSize).floor();
+        }
+        else{
+          _currentGridY = ((localPosition.dy - ((gridCellSize/_currentScale)*1.75))/ gridCellSize).floor();
+        }
 
         // Clamp the coordinates within the grid
         _currentGridX = _currentGridX.clamp(0, gridColumns - 1);
@@ -165,6 +183,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    deviceType = _getDeviceType(context);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -214,7 +233,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       body: MouseRegion(
-        onHover: (details) => _updateGridPosition(details.position),
+        onHover: (details) => _updateGridPosition(details.position, deviceType),
         child: InteractiveViewer(
           transformationController: _transformationController,
           boundaryMargin: const EdgeInsets.all(100),
