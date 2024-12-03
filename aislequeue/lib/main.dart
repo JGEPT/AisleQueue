@@ -32,7 +32,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   static const int gridColumns = 64;
   static const int gridRows = 64;
-  static const double gridCellSize = 30;
+  static const double gridCellSize = 40;
   late String deviceType;
 
   final List<PlacedTileData> _placedTiles = [];
@@ -47,6 +47,10 @@ class _MyHomePageState extends State<MyHomePage> {
   final TransformationController _transformationController =
       TransformationController();
 
+  // Search-related variables
+  final TextEditingController _searchController = TextEditingController();
+  bool _isSearching = false;
+
   @override
   void initState() {
     super.initState();
@@ -57,6 +61,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void dispose() {
+    // Dispose of search controller
+    _searchController.dispose();
+
     // Remove the listener when the widget is disposed
     _transformationController.removeListener(_onTransformationChanged);
     _transformationController.dispose();
@@ -80,10 +87,14 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         _currentScale = newScale;
       });
-      
-      // Optional: Log or perform actions based on scale change
-      print('Current Scale: $_currentScale');
     }
+  }
+
+  // Modified method to filter tiles based on search query
+  void _filterTiles(String query) {
+    setState(() {
+      _isSearching = query.isNotEmpty;
+    });
   }
 
   void _togglePlacementMode() {
@@ -139,10 +150,13 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _placeTile(String category) {
+    // Prevent placement if the current grid position is invalid or occupied
     bool isOccupied = _placedTiles.any((tile) =>
         tile.gridX == _currentGridX && tile.gridY == _currentGridY);
 
-    if (!isOccupied) {
+    if (_currentGridX >= 0 && _currentGridX < gridColumns && 
+        _currentGridY >= 0 && _currentGridY < gridRows && 
+        !isOccupied) {
       setState(() {
         final newTile = PlacedTileData(
           gridX: _currentGridX,
@@ -153,7 +167,7 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('This grid cell is already occupied')),
+        const SnackBar(content: Text('Cannot place tile here')),
       );
     }
   }
@@ -165,18 +179,27 @@ class _MyHomePageState extends State<MyHomePage> {
           _transformationController.toScene(position);
       
       setState(() {
-        // Calculate grid coordinates
         _currentGridX = (localPosition.dx / gridCellSize).floor();
         if(deviceType == 'Phone'){
-          _currentGridY = ((localPosition.dy - ((gridCellSize/_currentScale)*2.75))/ gridCellSize).floor();
+          _currentGridY = ((localPosition.dy - ((gridCellSize/_currentScale)*3.50))/ gridCellSize).floor();
         }
         else{
-          _currentGridY = ((localPosition.dy - ((gridCellSize/_currentScale)*1.75))/ gridCellSize).floor();
+          _currentGridY = ((localPosition.dy - ((gridCellSize/_currentScale)*3.00))/ gridCellSize).floor();
         }
 
         // Clamp the coordinates within the grid
         _currentGridX = _currentGridX.clamp(0, gridColumns - 1);
         _currentGridY = _currentGridY.clamp(0, gridRows - 1);
+
+        // Check if the current grid cell is already occupied
+        bool isOccupied = _placedTiles.any((tile) =>
+          tile.gridX == _currentGridX && tile.gridY == _currentGridY);
+
+        // If the cell is occupied, reset the grid coordinates to an invalid position
+        if (isOccupied) {
+          _currentGridX = -1;
+          _currentGridY = -1;
+        }
       });
     }
   }
@@ -192,20 +215,9 @@ class _MyHomePageState extends State<MyHomePage> {
             const Icon(Icons.shopping_bag, color: Colors.black),
             const SizedBox(width: 8),
             Text(widget.title),
-            // Display current scale in the app bar
-            Text(' (Zoom: ${_currentScale.toStringAsFixed(2)}x)'),
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              showSearch(
-                context: context,
-                delegate: CustomSearchDelegate(),
-              );
-            },
-          ),
           IconButton(
             icon: const Icon(Icons.shopping_cart),
             onPressed: () {
@@ -232,63 +244,124 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
-      body: MouseRegion(
-        onHover: (details) => _updateGridPosition(details.position, deviceType),
-        child: InteractiveViewer(
-          transformationController: _transformationController,
-          boundaryMargin: const EdgeInsets.all(100),
-          minScale: 0.5,
-          maxScale: 2.0,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return GestureDetector(
-                onTap: _isPlacementMode
-                    ? () => _showCategoryDialog(context)
-                    : null,
-                child: Stack(
-                  children: [
-                    ..._buildGridLines(constraints),
-                    ..._placedTiles.map((tileData) => Positioned(
-                          left: tileData.gridX * gridCellSize,
-                          top: tileData.gridY * gridCellSize,
-                          child: Container(
-                            width: gridCellSize,
-                            height: gridCellSize,
-                            color: Colors.green.shade500,
-                            child: Center(
-                              child: Text(
-                                tileData.category,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        )),
-                    if (_isPlacementMode)
-                      Positioned(
-                        left: _currentGridX * gridCellSize,
-                        top: _currentGridY * gridCellSize,
-                        child: Opacity(
-                          opacity: 0.5,
-                          child: Container(
-                            width: gridCellSize,
-                            height: gridCellSize,
-                            color: Colors.green.shade200,
-                            child: const Center(
-                              child: Text(
-                                'New Tile',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
+      body: Column(
+        children: [
+          // Search Bar
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    spreadRadius: 1,
+                    blurRadius: 3,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search categories...',
+                  prefixIcon: const Icon(Icons.search, color: Colors.green),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.green),
+                          onPressed: () {
+                            _searchController.clear();
+                            _filterTiles('');
+                          },
+                        )
+                      : null,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16, 
+                    vertical: 12
+                  ),
                 ),
-              );
-            },
+                onChanged: _filterTiles,
+              ),
+            ),
           ),
-        ),
+          
+          // Existing grid view with search filtering
+          Expanded(
+            child: MouseRegion(
+              onHover: (details) => _updateGridPosition(details.position, deviceType),
+              child: InteractiveViewer(
+                transformationController: _transformationController,
+                boundaryMargin: const EdgeInsets.all(100),
+                minScale: 0.5,
+                maxScale: 2.0,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return GestureDetector(
+                      onTap: _isPlacementMode
+                          ? () => _showCategoryDialog(context)
+                          : null,
+                      child: Stack(
+                        children: [
+                          ..._buildGridLines(constraints),
+                          // Render all tiles with dynamic opacity
+                          ..._placedTiles.map((tileData) => Positioned(
+                                left: tileData.gridX * gridCellSize,
+                                top: tileData.gridY * gridCellSize,
+                                child: Opacity(
+                                  opacity: _isSearching && 
+                                           !tileData.category.toLowerCase().contains(_searchController.text.toLowerCase()) 
+                                      ? 0.2  // Reduced opacity for non-matching tiles
+                                      : 1.0, // Full opacity for matching or when not searching
+                                  child: Container(
+                                    width: gridCellSize,
+                                    height: gridCellSize,
+                                    color: Colors.green.shade500,
+                                    child: Center(
+                                      child: Text(
+                                        tileData.category,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )),
+                          if (_isPlacementMode && _currentGridX >= 0 && _currentGridY >= 0 &&
+                              !_placedTiles.any((tile) => 
+                                  tile.gridX == _currentGridX && tile.gridY == _currentGridY))
+                            Positioned(
+                              left: _currentGridX * gridCellSize,
+                              top: _currentGridY * gridCellSize,
+                              child: Opacity(
+                                opacity: 0.5,
+                                child: Container(
+                                  width: gridCellSize,
+                                  height: gridCellSize,
+                                  color: Colors.green.shade200,
+                                  child: const Center(
+                                    child: Text(
+                                      'New Tile',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _togglePlacementMode,
@@ -344,51 +417,4 @@ class PlacedTileData {
     required this.gridY,
     required this.category,
   });
-}
-
-// Custom Search Delegate
-class CustomSearchDelegate extends SearchDelegate<String> {
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    return [
-      IconButton(
-        icon: const Icon(Icons.clear),
-        onPressed: () {
-          query = '';
-        },
-      ),
-    ];
-  }
-
-  @override
-  Widget buildLeading(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.arrow_back),
-      onPressed: () {
-        close(context, '');
-      },
-    );
-  }
-
-  @override
-  Widget buildResults(BuildContext context) {
-    return Center(
-      child: Text('Search results for "$query"'),
-    );
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    return ListView(
-      children: [
-        ListTile(
-          title: Text('Suggestion for "$query"'),
-          onTap: () {
-            query = 'Selected suggestion';
-            showResults(context);
-          },
-        ),
-      ],
-    );
-  }
 }
