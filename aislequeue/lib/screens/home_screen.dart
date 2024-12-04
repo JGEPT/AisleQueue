@@ -1,37 +1,36 @@
 import 'package:flutter/material.dart';
+
 import '../models/placed_tile_data.dart';
-import '../utils/device_type_detector.dart';
 import '../utils/constants.dart';
+import '../utils/device_type_detector.dart';
+import '../widgets/search_bar.dart';
+import '../widgets/app_bar.dart';
 import '../widgets/grid_view.dart';
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key, required this.title});
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _HomeScreenState extends State<HomeScreen> {
   final List<PlacedTileData> _placedTiles = [];
   bool _isPlacementMode = false;
-
-  // New variables for rectangular selection
   bool _isSelectingFirstPoint = false;
   bool _isSelectingSecondPoint = false;
   int? _firstGridX;
   int? _firstGridY;
   int _currentGridX = 0;
   int _currentGridY = 0;
-
   double _currentScale = 1.0;
+  late String deviceType;
 
   final TransformationController _transformationController =
       TransformationController();
-
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
-  late String deviceType;
 
   @override
   void initState() {
@@ -49,17 +48,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // Method to extract current scale
   void _onTransformationChanged() {
-    // Extract the scale from the transformation matrix
     Matrix4 matrix = _transformationController.value;
     
-    // Extract scale components
     double scaleX = matrix.getColumn(0).xyz.length;
     double scaleY = matrix.getColumn(1).xyz.length;
     
-    // Calculate average scale
     double newScale = (scaleX + scaleY) / 2;
     
-    // Update state only if the scale has changed significantly
     if ((newScale - _currentScale).abs() > 0.01) {
       setState(() {
         _currentScale = newScale;
@@ -92,17 +87,17 @@ class _MyHomePageState extends State<MyHomePage> {
       final Offset localPosition = _transformationController.toScene(position);
       
       setState(() {
-        _currentGridX = (localPosition.dx / GridConstants.gridCellSize).floor();
+        _currentGridX = (localPosition.dx / AppConstants.gridCellSize).floor();
         if(deviceType == 'Phone'){
-          _currentGridY = ((localPosition.dy - ((GridConstants.gridCellSize/_currentScale)*3.50))/ GridConstants.gridCellSize).floor();
+          _currentGridY = ((localPosition.dy - ((AppConstants.gridCellSize/_currentScale)*3.50))/ AppConstants.gridCellSize).floor();
         }
         else{
-          _currentGridY = ((localPosition.dy - ((GridConstants.gridCellSize/_currentScale)*3.00))/ GridConstants.gridCellSize).floor();
+          _currentGridY = ((localPosition.dy - ((AppConstants.gridCellSize/_currentScale)*3.00))/ AppConstants.gridCellSize).floor();
         }
 
         // Clamp the coordinates within the grid
-        _currentGridX = _currentGridX.clamp(0, GridConstants.gridColumns - 1);
-        _currentGridY = _currentGridY.clamp(0, GridConstants.gridRows - 1);
+        _currentGridX = _currentGridX.clamp(0, AppConstants.gridColumns - 1);
+        _currentGridY = _currentGridY.clamp(0, AppConstants.gridRows - 1);
       });
     }
   }
@@ -163,4 +158,141 @@ class _MyHomePageState extends State<MyHomePage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text
+            title: const Text('Placement Error'),
+            content: const Text('The selected area overlaps with existing tiles. Please choose a different area.'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _resetSelection();
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    // Show category dialog to get category name
+    _showRectangleCategoryDialog(startX, startY, endX, endY);
+  }
+
+  Future<void> _showRectangleCategoryDialog(int startX, int startY, int endX, int endY) async {
+    final TextEditingController categoryController = TextEditingController();
+
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Enter Category Name for Rectangle'),
+          content: TextField(
+            controller: categoryController,
+            decoration: const InputDecoration(
+              hintText: 'Enter a category name',
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _resetSelection();
+              },
+            ),
+            TextButton(
+              child: const Text('Add'),
+              onPressed: () {
+                if (categoryController.text.isNotEmpty) {
+                  // Remove any existing tiles in the rectangle area
+                  _placedTiles.removeWhere((tile) => 
+                    tile.gridX >= startX && tile.gridX <= endX &&
+                    tile.gridY >= startY && tile.gridY <= endY
+                  );
+
+                  // Place a single large tile
+                  setState(() {
+                    final newTile = PlacedTileData(
+                      gridX: startX,
+                      gridY: startY,
+                      width: endX - startX + 1,
+                      height: endY - startY + 1,
+                      category: categoryController.text,
+                    );
+                    _placedTiles.add(newTile);
+                  });
+
+                  Navigator.of(context).pop();
+                  _resetSelection();
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _resetSelection() {
+    setState(() {
+      _isSelectingFirstPoint = _isPlacementMode;
+      _isSelectingSecondPoint = false;
+      _firstGridX = null;
+      _firstGridY = null;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    deviceType = DeviceTypeDetector.getDeviceType(context);
+    return Scaffold(
+      appBar: CustomAppBar(
+        title: widget.title,
+      ),
+      body: Column(
+        children: [
+          // Search Bar
+          CategorySearchBar(
+            searchController: _searchController,
+            onFilterChanged: _filterTiles,
+          ),
+          
+          // Grid View
+          Expanded(
+            child: MouseRegion(
+              onHover: (details) => _updateGridPosition(details.position),
+              child: InteractiveViewer(
+                transformationController: _transformationController,
+                boundaryMargin: const EdgeInsets.all(100),
+                minScale: 0.5,
+                maxScale: 2.0,
+                child: InteractiveGridView(
+                  transformationController: _transformationController,
+                  placedTiles: _placedTiles,
+                  isSearching: _isSearching,
+                  searchQuery: _searchController.text,
+                  isPlacementMode: _isPlacementMode,
+                  isSelectingFirstPoint: _isSelectingFirstPoint,
+                  isSelectingSecondPoint: _isSelectingSecondPoint,
+                  firstGridX: _firstGridX,
+                  firstGridY: _firstGridY,
+                  currentGridX: _currentGridX,
+                  currentGridY: _currentGridY,
+                  onUpdateGridPosition: _updateGridPosition,
+                  onGridTap: _handleGridTap,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _togglePlacementMode,
+        tooltip: 'Toggle Placement Mode',
+        backgroundColor: _isPlacementMode ? Colors.red : Colors.green,
+        child: Icon(_isPlacementMode ? Icons.close : Icons.add),
+      ),
+    );
+  }
+}
