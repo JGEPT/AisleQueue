@@ -406,9 +406,9 @@ class CircleNum extends StatelessWidget {
           child: Text(
             number, // The number inside the circle
             style: TextStyle(
-              color: Color(0xffFFF1DB), // White text color
-              fontSize: 18, // You can adjust the font size
-              fontWeight: FontWeight.bold, // Optional: makes the number bold
+              color: Color(0xffFFF1DB),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),
