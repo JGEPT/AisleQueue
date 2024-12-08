@@ -1,31 +1,34 @@
 import 'package:flutter/material.dart';
-
+import '../widgets/custom_app_bar.dart';
+import '../widgets/grid_view_widget.dart';
+import '../widgets/search_bar_widget.dart' as custom_widgets;
 import '../models/placed_tile_data.dart';
-import '../utils/constants.dart';
-import '../utils/device_type_detector.dart';
-import '../widgets/search_bar.dart';
-import '../widgets/app_bar.dart';
-import '../widgets/grid_view.dart';
+import '../utils/device_type.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.title});
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key, required this.title});
   final String title;
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _MyHomePageState extends State<MyHomePage> {
+  late String deviceType;
+  static const int gridColumns = 32;
+  static const int gridRows = 32;
+  static const double gridCellSize = 40;
+
   final List<PlacedTileData> _placedTiles = [];
   bool _isPlacementMode = false;
   bool _isSelectingFirstPoint = false;
   bool _isSelectingSecondPoint = false;
+  bool _isRemoveMode = false;
   int? _firstGridX;
   int? _firstGridY;
   int _currentGridX = 0;
   int _currentGridY = 0;
   double _currentScale = 1.0;
-  late String deviceType;
 
   final TransformationController _transformationController =
       TransformationController();
@@ -39,6 +42,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    deviceType = getDeviceType(context);
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     _transformationController.removeListener(_onTransformationChanged);
@@ -46,15 +55,12 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  // Method to extract current scale
   void _onTransformationChanged() {
     Matrix4 matrix = _transformationController.value;
-    
     double scaleX = matrix.getColumn(0).xyz.length;
     double scaleY = matrix.getColumn(1).xyz.length;
-    
     double newScale = (scaleX + scaleY) / 2;
-    
+
     if ((newScale - _currentScale).abs() > 0.01) {
       setState(() {
         _currentScale = newScale;
@@ -62,7 +68,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Modified method to filter tiles based on search query
   void _filterTiles(String query) {
     setState(() {
       _isSearching = query.isNotEmpty;
@@ -72,32 +77,37 @@ class _HomeScreenState extends State<HomeScreen> {
   void _togglePlacementMode() {
     setState(() {
       _isPlacementMode = !_isPlacementMode;
-      
-      // Reset selection state when toggling placement mode
-      _isSelectingFirstPoint = _isPlacementMode;
-      _isSelectingSecondPoint = false;
-      _firstGridX = null;
-      _firstGridY = null;
+      _isRemoveMode = false;
+      _resetSelection();
+    });
+  }
+
+  void _toggleRemoveMode() {
+    setState(() {
+      _isRemoveMode = !_isRemoveMode;
+      _isPlacementMode = false;
+      _resetSelection();
     });
   }
 
   void _updateGridPosition(Offset position) {
-    if (_isPlacementMode) {
-      // Transform the global cursor position to scene coordinates
+    if (_isPlacementMode || _isRemoveMode) {
       final Offset localPosition = _transformationController.toScene(position);
-      
       setState(() {
-        _currentGridX = (localPosition.dx / AppConstants.gridCellSize).floor();
-        if(deviceType == 'Phone'){
-          _currentGridY = ((localPosition.dy - ((AppConstants.gridCellSize/_currentScale)*3.50))/ AppConstants.gridCellSize).floor();
+        _currentGridX = (localPosition.dx / gridCellSize).floor();
+        if (deviceType == 'Phone') {
+          _currentGridY =
+              ((localPosition.dy - ((gridCellSize / _currentScale) * 3.50)) /
+                      gridCellSize)
+                  .floor();
+        } else {
+          _currentGridY =
+              ((localPosition.dy - ((gridCellSize / _currentScale) * 3.00)) /
+                      gridCellSize)
+                  .floor();
         }
-        else{
-          _currentGridY = ((localPosition.dy - ((AppConstants.gridCellSize/_currentScale)*3.00))/ AppConstants.gridCellSize).floor();
-        }
-
-        // Clamp the coordinates within the grid
-        _currentGridX = _currentGridX.clamp(0, AppConstants.gridColumns - 1);
-        _currentGridY = _currentGridY.clamp(0, AppConstants.gridRows - 1);
+        _currentGridX = _currentGridX.clamp(0, gridColumns - 1);
+        _currentGridY = _currentGridY.clamp(0, gridRows - 1);
       });
     }
   }
@@ -105,7 +115,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void _handleGridTap() {
     if (_isPlacementMode) {
       if (_isSelectingFirstPoint) {
-        // First point selection
         setState(() {
           _firstGridX = _currentGridX;
           _firstGridY = _currentGridY;
@@ -113,32 +122,114 @@ class _HomeScreenState extends State<HomeScreen> {
           _isSelectingSecondPoint = true;
         });
       } else if (_isSelectingSecondPoint) {
-        // Second point selection and tile placement
         _placeRectangleTiles();
       }
+    } else if (_isRemoveMode) {
+      _removeOrEditTile();
     }
   }
 
-  bool _checkTileOverlap(int startX, int startY, int endX, int endY) {
-    // Check if the new tile intersects with any existing tiles
-    return _placedTiles.any((tile) {
-      // Check if the new tile overlaps with an existing tile
-      bool xOverlap = !(endX < tile.gridX || startX > (tile.gridX + tile.width - 1));
-      bool yOverlap = !(endY < tile.gridY || startY > (tile.gridY + tile.height - 1));
-      return xOverlap && yOverlap;
+  void _removeOrEditTile() {
+    PlacedTileData? tileToModify = _findTileAtCurrentPosition();
+
+    if (tileToModify != null) {
+      showDialog<void>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Tile Options'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _removeTile(tileToModify);
+                  },
+                  child: const Text('Remove Tile'),
+                ),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _showEditCategoryDialog(tileToModify);
+                  },
+                  child: const Text('Edit Category'),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    }
+  }
+
+  PlacedTileData? _findTileAtCurrentPosition() {
+    try {
+      return _placedTiles.firstWhere(
+        (tile) =>
+            _currentGridX >= tile.gridX &&
+            _currentGridX < tile.gridX + tile.width &&
+            _currentGridY >= tile.gridY &&
+            _currentGridY < tile.gridY + tile.height,
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  void _removeTile(PlacedTileData tile) {
+    setState(() {
+      _placedTiles.remove(tile);
     });
+  }
+
+  void _showEditCategoryDialog(PlacedTileData tile) {
+    final TextEditingController categoryController =
+        TextEditingController(text: tile.category);
+
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Edit Category'),
+          content: TextField(
+            controller: categoryController,
+            decoration:
+                const InputDecoration(hintText: 'Enter new category name'),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Save'),
+              onPressed: () {
+                if (categoryController.text.isNotEmpty) {
+                  setState(() {
+                    tile.category = categoryController.text;
+                  });
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _placeRectangleTiles() {
     if (_firstGridX == null || _firstGridY == null) return;
 
-    // Determine the bounds of the rectangle
     int startX = _firstGridX!;
     int startY = _firstGridY!;
     int endX = _currentGridX;
     int endY = _currentGridY;
 
-    // Ensure start is always less than end
     if (startX > endX) {
       int temp = startX;
       startX = endX;
@@ -151,35 +242,48 @@ class _HomeScreenState extends State<HomeScreen> {
       endY = temp;
     }
 
-    // Check for overlapping tiles before showing the dialog
     if (_checkTileOverlap(startX, startY, endX, endY)) {
-      // Show an error dialog if tiles would overlap
-      showDialog<void>(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Placement Error'),
-            content: const Text('The selected area overlaps with existing tiles. Please choose a different area.'),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  _resetSelection();
-                },
-              ),
-            ],
-          );
-        },
-      );
+      _showPlacementErrorDialog();
       return;
     }
 
-    // Show category dialog to get category name
     _showRectangleCategoryDialog(startX, startY, endX, endY);
   }
 
-  Future<void> _showRectangleCategoryDialog(int startX, int startY, int endX, int endY) async {
+  bool _checkTileOverlap(int startX, int startY, int endX, int endY) {
+    return _placedTiles.any((tile) {
+      bool xOverlap =
+          !(endX < tile.gridX || startX > (tile.gridX + tile.width - 1));
+      bool yOverlap =
+          !(endY < tile.gridY || startY > (tile.gridY + tile.height - 1));
+      return xOverlap && yOverlap;
+    });
+  }
+
+  void _showPlacementErrorDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Placement Error'),
+          content: const Text(
+              'The selected area overlaps with existing tiles. Please choose a different area.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _resetSelection();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showRectangleCategoryDialog(
+      int startX, int startY, int endX, int endY) async {
     final TextEditingController categoryController = TextEditingController();
 
     return showDialog<void>(
@@ -189,9 +293,8 @@ class _HomeScreenState extends State<HomeScreen> {
           title: const Text('Enter Category Name for Rectangle'),
           content: TextField(
             controller: categoryController,
-            decoration: const InputDecoration(
-              hintText: 'Enter a category name',
-            ),
+            decoration:
+                const InputDecoration(hintText: 'Enter a category name'),
           ),
           actions: <Widget>[
             TextButton(
@@ -205,13 +308,12 @@ class _HomeScreenState extends State<HomeScreen> {
               child: const Text('Add'),
               onPressed: () {
                 if (categoryController.text.isNotEmpty) {
-                  // Remove any existing tiles in the rectangle area
-                  _placedTiles.removeWhere((tile) => 
-                    tile.gridX >= startX && tile.gridX <= endX &&
-                    tile.gridY >= startY && tile.gridY <= endY
-                  );
+                  _placedTiles.removeWhere((tile) =>
+                      tile.gridX >= startX &&
+                      tile.gridX <= endX &&
+                      tile.gridY >= startY &&
+                      tile.gridY <= endY);
 
-                  // Place a single large tile
                   setState(() {
                     final newTile = PlacedTileData(
                       gridX: startX,
@@ -245,53 +347,79 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    deviceType = DeviceTypeDetector.getDeviceType(context);
     return Scaffold(
-      appBar: CustomAppBar(
-        title: widget.title,
-      ),
+      appBar: CustomAppBar(title: widget.title),
       body: Column(
         children: [
-          // Search Bar
-          CategorySearchBar(
-            searchController: _searchController,
-            onFilterChanged: _filterTiles,
+          custom_widgets.SearchBar(
+            controller: _searchController,
+            onChanged: _filterTiles,
           ),
-          
-          // Grid View
           Expanded(
-            child: MouseRegion(
-              onHover: (details) => _updateGridPosition(details.position),
-              child: InteractiveViewer(
-                transformationController: _transformationController,
-                boundaryMargin: const EdgeInsets.all(100),
-                minScale: 0.5,
-                maxScale: 2.0,
-                child: InteractiveGridView(
-                  transformationController: _transformationController,
-                  placedTiles: _placedTiles,
-                  isSearching: _isSearching,
-                  searchQuery: _searchController.text,
-                  isPlacementMode: _isPlacementMode,
-                  isSelectingFirstPoint: _isSelectingFirstPoint,
-                  isSelectingSecondPoint: _isSelectingSecondPoint,
-                  firstGridX: _firstGridX,
-                  firstGridY: _firstGridY,
-                  currentGridX: _currentGridX,
-                  currentGridY: _currentGridY,
-                  onUpdateGridPosition: _updateGridPosition,
-                  onGridTap: _handleGridTap,
-                ),
-              ),
+            child: GridViewWidget(
+              placedTiles: _placedTiles,
+              isSearching: _isSearching,
+              searchQuery: _searchController.text,
+              onGridTap: _handleGridTap,
+              onHover: _updateGridPosition,
+              transformationController: _transformationController,
+              isPlacementMode: _isPlacementMode,
+              isRemoveMode: _isRemoveMode,
+              currentGridX: _currentGridX,
+              currentGridY: _currentGridY,
+              isSelectingFirstPoint: _isSelectingFirstPoint,
+              isSelectingSecondPoint: _isSelectingSecondPoint,
+              firstGridX: _firstGridX,
+              firstGridY: _firstGridY,
             ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _togglePlacementMode,
-        tooltip: 'Toggle Placement Mode',
-        backgroundColor: _isPlacementMode ? Colors.red : Colors.green,
-        child: Icon(_isPlacementMode ? Icons.close : Icons.add),
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: FloatingActionButton(
+              onPressed: _toggleRemoveMode,
+              tooltip: 'Edit/Remove Tiles',
+              backgroundColor:
+                  _isRemoveMode ? Colors.red[700] : Colors.amber[800],
+              heroTag: 'editRemoveButton',
+              child: Icon(
+                _isRemoveMode ? Icons.close : Icons.edit,
+                color: Colors.white,
+                size: 24,
+              ),
+              elevation: _isRemoveMode ? 8 : 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: _isRemoveMode
+                    ? BorderSide(color: Colors.red[900]!, width: 2)
+                    : BorderSide.none,
+              ),
+            ),
+          ),
+          FloatingActionButton(
+            onPressed: _togglePlacementMode,
+            tooltip: 'Add Tiles',
+            backgroundColor:
+                _isPlacementMode ? Colors.red[700] : Colors.green[700],
+            heroTag: 'placementButton',
+            child: Icon(
+              _isPlacementMode ? Icons.close : Icons.add,
+              color: Colors.white,
+              size: 28,
+            ),
+            elevation: _isPlacementMode ? 8 : 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: _isPlacementMode
+                  ? BorderSide(color: Colors.green[900]!, width: 2)
+                  : BorderSide.none,
+            ),
+          ),
+        ],
       ),
     );
   }

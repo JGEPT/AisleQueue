@@ -1,9 +1,9 @@
 class PlacedTileData {
-  final int gridX;
-  final int gridY;
-  final int width;
-  final int height;
-  final String category;
+  int gridX;
+  int gridY;
+  int width;
+  int height;
+  String category;
 
   PlacedTileData({
     required this.gridX,
