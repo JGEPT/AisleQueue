@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:aislequeue/widgets/menu_widget.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
             Positioned(
               top: 10,
               left: 20,
-              child: Icon(Icons.menu),
+              child: CustomMenu(),
             ),
             // Search Bar
             Positioned(
@@ -413,6 +413,21 @@ class CircleNum extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+
+class Menu extends StatelessWidget {
+  const Menu({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.menu),
+      onPressed: () {
+        // Define menu button behavior here
+      },
     );
   }
 }
