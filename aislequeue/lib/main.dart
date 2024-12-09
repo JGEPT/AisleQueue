@@ -3,5 +3,5 @@ import 'layout_creator.dart';
 import 'app.dart';
 
 void main() {
-  runApp(const MyApp()); // do const MyApp for homepage and LayoutCreatorApp for the layout creator.
+  runApp(const LayoutCreatorApp()); // do const MyApp for homepage and LayoutCreatorApp for the layout creator.
 }

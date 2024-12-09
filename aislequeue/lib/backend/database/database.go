@@ -29,6 +29,16 @@ func InitDatabase() {
 	if err != nil {
 		log.Fatal("Failed to create todos table:", err)
 	}
+	// Create layouts table if not exists
+	createLayoutsTableSQL := `CREATE TABLE IF NOT EXISTS layouts (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	placed_tiles TEXT NOT NULL
+)`
+
+	_, err = DB.Exec(createLayoutsTableSQL)
+	if err != nil {
+		log.Fatal("Failed to create layouts table:", err)
+	}
 }
 
 func CloseDatabase() {

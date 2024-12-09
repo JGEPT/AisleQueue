@@ -1,9 +1,9 @@
 package main
 
 import (
-	"log"
 	"backend/database"
 	"backend/handlers"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -27,6 +27,10 @@ func main() {
 	app.Post("/todos", handlers.CreateTodo)
 	app.Put("/todos/:id", handlers.UpdateTodo)
 	app.Delete("/todos/:id", handlers.DeleteTodo)
+	app.Get("/layouts/:id", handlers.LoadLayout)
+	app.Post("/save-layout", handlers.SaveLayout)
+	app.Put("/update-layout/:id", handlers.UpdateLayout)
+	app.Delete("/delete-layout", handlers.DeleteLayout)
 
 	// Start server
 	log.Println("Server started on :3000")
