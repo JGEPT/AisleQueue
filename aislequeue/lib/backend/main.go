@@ -30,9 +30,9 @@ func main() {
 	app.Get("/layouts/:id", handlers.LoadLayout)
 	app.Post("/save-layout", handlers.SaveLayout)
 	app.Put("/update-layout/:id", handlers.UpdateLayout)
-	app.Delete("/delete-layout", handlers.DeleteLayout)
+  app.Delete("/delete-layout/:id", handlers.DeleteLayout)
 
 	// Start server
 	log.Println("Server started on :3000")
-	log.Fatal(app.Listen(":3000"))
+	log.Fatal(app.Listen("0.0.0.0:3000"))
 }
