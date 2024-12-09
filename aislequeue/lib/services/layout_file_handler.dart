@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/layout_data.dart';
 
 class LayoutFileHandler {
-  static const String baseUrl = 'http://localhost:3000';
+  static const String baseUrl = 'http://172.16.10.130:3000';
 
   // Save a new layout
   static Future<String> saveLayout(LayoutData layout) async {
@@ -50,7 +50,7 @@ class LayoutFileHandler {
   // Delete a layout by ID
   static Future<void> deleteLayout(String id) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl/delete-layout?id=$id'), // Adjust to query parameter
+      Uri.parse('$baseUrl/delete-layout/$id'), // Adjust to query parameter
     );
     
     if (response.statusCode != 204) {

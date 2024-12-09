@@ -36,6 +36,7 @@ class _LayoutCreatorState extends State<LayoutCreator> {
       TransformationController();
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
+  String? _currentLoadedLayoutId; // Track the currently loaded layout ID
 
   @override
   void initState() {
@@ -368,15 +369,44 @@ class _LayoutCreatorState extends State<LayoutCreator> {
   }
 
   void _saveLayout() async {
+    if (_currentLoadedLayoutId != null) {
+      // If we're editing an existing layout, offer to update it
+      bool? confirmUpdate = await _showConfirmationDialog(
+        'Update Existing Layout',
+        'Do you want to update the existing layout with ID: $_currentLoadedLayoutId?',
+      );
+
+      if (confirmUpdate == true) {
+        await _updateExistingLayout();
+        return;
+      }
+    }
+
+    // If not updating an existing layout, proceed with saving as new
     String? fileName = await _showFileNameDialog('Save Layout');
     if (fileName != null && fileName.isNotEmpty) {
       LayoutData layout = LayoutData(placedTiles: _placedTiles);
       try {
         String layoutId = await LayoutFileHandler.saveLayout(layout);
         _showSuccessDialog('Layout saved with ID: $layoutId');
+        setState(() {
+          _currentLoadedLayoutId = layoutId;
+        });
       } catch (e) {
         _showErrorDialog('Failed to save layout: $e');
       }
+    }
+  }
+
+  Future<void> _updateExistingLayout() async {
+    if (_currentLoadedLayoutId == null) return;
+
+    try {
+      LayoutData layout = LayoutData(placedTiles: _placedTiles);
+      await LayoutFileHandler.updateLayout(_currentLoadedLayoutId!, layout);
+      _showSuccessDialog('Layout updated successfully.');
+    } catch (e) {
+      _showErrorDialog('Failed to update layout: $e');
     }
   }
 
@@ -389,6 +419,7 @@ class _LayoutCreatorState extends State<LayoutCreator> {
           setState(() {
             _placedTiles.clear();
             _placedTiles.addAll(layout.placedTiles);
+            _currentLoadedLayoutId = fileName; // Track the loaded layout ID
           });
           _showSuccessDialog('Layout loaded successfully.');
         } else {
@@ -401,39 +432,58 @@ class _LayoutCreatorState extends State<LayoutCreator> {
     }
   }
 
-  void _updateLayout() async {
-    String? layoutId = await _showFileNameDialog('Update Layout ID');
+  void _deleteLayout() async {
+    String? layoutId = await _showFileNameDialog('Delete Layout ID');
     if (layoutId != null && layoutId.isNotEmpty) {
-      try {
-        LayoutData? layout = await LayoutFileHandler.loadLayout(layoutId);
-        if (layout != null) {
-          // Allow user to modify the layout
-          setState(() {
-            _placedTiles.clear();
-            _placedTiles.addAll(layout.placedTiles);
-          });
-          // Optionally, you can show a dialog to confirm the update
-          _showSuccessDialog(
-              'Layout loaded for editing. Make your changes and save.');
-        } else {
-          _showErrorDialog('Failed to load layout. Please check the ID.');
+      bool? confirmDelete = await _showConfirmationDialog(
+        'Confirm Delete',
+        'Are you sure you want to delete the layout with ID: $layoutId?',
+      );
+
+      if (confirmDelete == true) {
+        try {
+          await LayoutFileHandler.deleteLayout(layoutId);
+
+          // Clear current layout if the deleted layout was the loaded one
+          if (layoutId == _currentLoadedLayoutId) {
+            setState(() {
+              _placedTiles.clear();
+              _currentLoadedLayoutId = null;
+            });
+          }
+
+          _showSuccessDialog('Layout deleted successfully.');
+        } catch (e) {
+          _showErrorDialog('Failed to delete layout: $e');
         }
-      } catch (e) {
-        _showErrorDialog('Failed to load layout: $e');
       }
     }
   }
 
-  void _deleteLayout() async {
-    String? layoutId = await _showFileNameDialog('Delete Layout ID');
-    if (layoutId != null && layoutId.isNotEmpty) {
-      try {
-        await LayoutFileHandler.deleteLayout(layoutId);
-        _showSuccessDialog('Layout deleted successfully.');
-      } catch (e) {
-        _showErrorDialog('Failed to delete layout: $e');
-      }
-    }
+  Future<bool?> _showConfirmationDialog(String title, String content) async {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(content),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+            TextButton(
+              child: const Text('Confirm'),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<String?> _showFileNameDialog(String title) async {
@@ -524,6 +574,7 @@ class _LayoutCreatorState extends State<LayoutCreator> {
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
+          // Edit/Remove Button
           Padding(
             padding: const EdgeInsets.only(right: 10),
             child: FloatingActionButton(
@@ -546,35 +597,56 @@ class _LayoutCreatorState extends State<LayoutCreator> {
               ),
             ),
           ),
-          FloatingActionButton(
-            onPressed: _togglePlacementMode,
-            tooltip: 'Add Tiles',
-            backgroundColor:
-                _isPlacementMode ? Colors.red[700] : Colors.green[700],
-            heroTag: 'placementButton',
-            child: Icon(
-              _isPlacementMode ? Icons.close : Icons.add,
-              color: Colors.white,
-              size: 28,
-            ),
-            elevation: _isPlacementMode ? 8 : 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: _isPlacementMode
-                  ? BorderSide(color: Colors.green[900]!, width: 2)
-                  : BorderSide.none,
+          // Add Tiles Button
+          Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: FloatingActionButton(
+              onPressed: _togglePlacementMode,
+              tooltip: 'Add Tiles',
+              backgroundColor:
+                  _isPlacementMode ? Colors.red[700] : Colors.green[700],
+              heroTag: 'placementButton',
+              child: Icon(
+                _isPlacementMode ? Icons.close : Icons.add,
+                color: Colors.white,
+                size: 28,
+              ),
+              elevation: _isPlacementMode ? 8 : 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: _isPlacementMode
+                    ? BorderSide(color: Colors.green[900]!, width: 2)
+                    : BorderSide.none,
+              ),
             ),
           ),
-          FloatingActionButton(
-            onPressed: _saveLayout,
-            tooltip: 'Save Layout',
-            child: Icon(Icons.save),
+          // Save Layout Button
+          Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: FloatingActionButton(
+              onPressed: _saveLayout,
+              tooltip: 'Save Layout',
+              heroTag: 'saveButton',
+              child: const Icon(Icons.save),
+            ),
           ),
-          SizedBox(width: 10),
+          // Load Layout Button
+          Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: FloatingActionButton(
+              onPressed: _loadLayout,
+              tooltip: 'Load Layout',
+              heroTag: 'loadButton',
+              child: const Icon(Icons.folder_open),
+            ),
+          ),
+          // Delete Layout Button
           FloatingActionButton(
-            onPressed: _loadLayout,
-            tooltip: 'Load Layout',
-            child: Icon(Icons.folder_open),
+            onPressed: _deleteLayout,
+            tooltip: 'Delete Layout',
+            heroTag: 'deleteButton',
+            backgroundColor: Colors.red,
+            child: const Icon(Icons.delete),
           ),
         ],
       ),
