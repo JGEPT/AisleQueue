@@ -4,6 +4,8 @@ import '../widgets/grid_view_widget.dart';
 import '../widgets/search_bar_widget.dart' as custom_widgets;
 import '../models/placed_tile_data.dart';
 import '../utils/device_type.dart';
+import '../models/layout_data.dart';
+import '../services/layout_file_handler.dart';
 
 class LayoutCreator extends StatefulWidget {
   const LayoutCreator({super.key, required this.title});
@@ -345,6 +347,85 @@ class _LayoutCreatorState extends State<LayoutCreator> {
     });
   }
 
+  void _saveLayout() async {
+    String? fileName = await _showFileNameDialog('Save Layout');
+    if (fileName != null && fileName.isNotEmpty) {
+      LayoutData layout = LayoutData(placedTiles: _placedTiles);
+      await LayoutFileHandler.saveLayout(layout, fileName);
+    }
+  }
+
+  void _loadLayout() async {
+    String? fileName = await _showFileNameDialog('Load Layout');
+    if (fileName != null && fileName.isNotEmpty) {
+      LayoutData? layout = await LayoutFileHandler.loadLayout(fileName);
+      if (layout != null) {
+        setState(() {
+          _placedTiles.clear();
+          _placedTiles.addAll(layout.placedTiles);
+        });
+      } else {
+        // Handle the case where the layout could not be loaded
+        _showErrorDialog('Failed to load layout. Please check the file name.');
+      }
+    }
+  }
+
+  Future<String?> _showFileNameDialog(String title) async {
+    final TextEditingController controller = TextEditingController();
+    String? fileName;
+
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: TextField(
+            controller: controller,
+            decoration: InputDecoration(hintText: 'Enter file name'),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                fileName = controller.text;
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    return fileName;
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -418,6 +499,17 @@ class _LayoutCreatorState extends State<LayoutCreator> {
                   ? BorderSide(color: Colors.green[900]!, width: 2)
                   : BorderSide.none,
             ),
+          ),
+          FloatingActionButton(
+            onPressed: _saveLayout,
+            tooltip: 'Save Layout',
+            child: Icon(Icons.save),
+          ),
+          SizedBox(width: 10),
+          FloatingActionButton(
+            onPressed: _loadLayout,
+            tooltip: 'Load Layout',
+            child: Icon(Icons.folder_open),
           ),
         ],
       ),
