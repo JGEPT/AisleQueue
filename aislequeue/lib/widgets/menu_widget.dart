@@ -1283,345 +1283,72 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 755,
-                                        left: 0,
-                                        child: Container(
-                                            width: 190,
+                                        right: 2,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            // Close the old menu and open the new one
+                                            Navigator.of(context).pop(); // Close the current menu (pop from the stack)
+                                            showMenu(
+                                              context: context,
+                                              position: RelativeRect.fromLTRB(
+                                                MediaQuery.of(context).size.width - 87, // Right-aligned
+                                                755, // Top position
+                                                200, // Padding from the right edge
+                                                0, // Bottom of the screen
+                                              ),
+                                              items: [
+                                                PopupMenuItem(
+                                                  child: Container(
+                                                    width: 200,
+                                                    height: 850,
+                                                    color: Colors.grey[300], // Different background for the new menu
+                                                    child: Column(
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      children: [
+                                                        Text(
+                                                          "This is the Next Menu",
+                                                          style: TextStyle(fontSize: 16, color: Colors.black),
+                                                        ),
+                                                        SizedBox(height: 20),
+                                                        ElevatedButton(
+                                                          onPressed: () {
+                                                            Navigator.of(context).pop(); // Close the new menu if needed
+                                                          },
+                                                          child: Text("Close"),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  value: 1,
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                          child: Container(
+                                            width: 85,
                                             height: 25,
                                             decoration: BoxDecoration(
                                               color: Color(0xFF5A967A),
                                               borderRadius: BorderRadius.circular(20),
                                             ),
-                                            child: Stack(
-                                                children: [
-                                                  Positioned(
-                                                      top: 5,
-                                                      left: 10,
-                                                      child: Container(
-                                                        width: 15,
-                                                        height: 15,
-                                                        decoration: BoxDecoration(
-                                                          color: Color(0xFF006769),
-                                                          shape: BoxShape.circle,
-                                                        ),
-                                                        child: Center(
-                                                          child: Text(
-                                                            '26',
-                                                            style: TextStyle(
-                                                              color: Colors.white,
-                                                              fontSize: 10,
-                                                              fontWeight: FontWeight.bold,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      )
-                                                  ),
-                                                  Center(
-                                                    child: Text(
-                                                      "Deodorant",
-                                                      style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 14,
-                                                        fontWeight: FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ]
-                                            )
-                                        ),
-                                      ),
-                                      Positioned(
-                                        top: 785,
-                                        left: 0,
-                                        child: Container(
-                                            width: 190,
-                                            height: 25,
-                                            decoration: BoxDecoration(
-                                              color: Color(0xFF5A967A),
-                                              borderRadius: BorderRadius.circular(20),
+                                            child: Center(
+                                              child: Text(
+                                                "Next",
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
                                             ),
-                                            child: Stack(
-                                                children: [
-                                                  Positioned(
-                                                      top: 5,
-                                                      left: 10,
-                                                      child: Container(
-                                                        width: 15,
-                                                        height: 15,
-                                                        decoration: BoxDecoration(
-                                                          color: Color(0xFF006769),
-                                                          shape: BoxShape.circle,
-                                                        ),
-                                                        child: Center(
-                                                          child: Text(
-                                                            '27',
-                                                            style: TextStyle(
-                                                              color: Colors.white,
-                                                              fontSize: 10,
-                                                              fontWeight: FontWeight.bold,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      )
-                                                  ),
-                                                  Center(
-                                                    child: Text(
-                                                      "Toothpaste",
-                                                      style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 14,
-                                                        fontWeight: FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ]
-                                            )
+                                          ),
                                         ),
-                                      ),
-                                      Positioned(
-                                        top: 815,
-                                        left: 0,
-                                        child: Container(
-                                            width: 190,
-                                            height: 25,
-                                            decoration: BoxDecoration(
-                                              color: Color(0xFF5A967A),
-                                              borderRadius: BorderRadius.circular(20),
-                                            ),
-                                            child: Stack(
-                                                children: [
-                                                  Positioned(
-                                                      top: 5,
-                                                      left: 10,
-                                                      child: Container(
-                                                        width: 15,
-                                                        height: 15,
-                                                        decoration: BoxDecoration(
-                                                          color: Color(0xFF006769),
-                                                          shape: BoxShape.circle,
-                                                        ),
-                                                        child: Center(
-                                                          child: Text(
-                                                            '28',
-                                                            style: TextStyle(
-                                                              color: Colors.white,
-                                                              fontSize: 10,
-                                                              fontWeight: FontWeight.bold,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      )
-                                                  ),
-                                                  Center(
-                                                    child: Text(
-                                                      "Vegetables",
-                                                      style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 14,
-                                                        fontWeight: FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ]
-                                            )
-                                        ),
-                                      ),
-                                      Positioned(
-                                        top: 845,
-                                        left: 0,
-                                        child: Container(
-                                            width: 190,
-                                            height: 25,
-                                            decoration: BoxDecoration(
-                                              color: Color(0xFF5A967A),
-                                              borderRadius: BorderRadius.circular(20),
-                                            ),
-                                            child: Stack(
-                                                children: [
-                                                  Positioned(
-                                                      top: 5,
-                                                      left: 10,
-                                                      child: Container(
-                                                        width: 15,
-                                                        height: 15,
-                                                        decoration: BoxDecoration(
-                                                          color: Color(0xFF006769),
-                                                          shape: BoxShape.circle,
-                                                        ),
-                                                        child: Center(
-                                                          child: Text(
-                                                            '29',
-                                                            style: TextStyle(
-                                                              color: Colors.white,
-                                                              fontSize: 10,
-                                                              fontWeight: FontWeight.bold,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      )
-                                                  ),
-                                                  Center(
-                                                    child: Text(
-                                                      "Fruits",
-                                                      style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 14,
-                                                        fontWeight: FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ]
-                                            )
-                                        ),
-                                      ),
-                                      Positioned(
-                                        top: 875,
-                                        left: 0,
-                                        child: Container(
-                                            width: 190,
-                                            height: 25,
-                                            decoration: BoxDecoration(
-                                              color: Color(0xFF5A967A),
-                                              borderRadius: BorderRadius.circular(20),
-                                            ),
-                                            child: Stack(
-                                                children: [
-                                                  Positioned(
-                                                      top: 5,
-                                                      left: 10,
-                                                      child: Container(
-                                                        width: 15,
-                                                        height: 15,
-                                                        decoration: BoxDecoration(
-                                                          color: Color(0xFF006769),
-                                                          shape: BoxShape.circle,
-                                                        ),
-                                                        child: Center(
-                                                          child: Text(
-                                                            '30',
-                                                            style: TextStyle(
-                                                              color: Colors.white,
-                                                              fontSize: 10,
-                                                              fontWeight: FontWeight.bold,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      )
-                                                  ),
-                                                  Center(
-                                                    child: Text(
-                                                      "Ice Creams",
-                                                      style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 14,
-                                                        fontWeight: FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ]
-                                            )
-                                        ),
-                                      ),
-                                      Positioned(
-                                        top: 905,
-                                        left: 0,
-                                        child: Container(
-                                            width: 190,
-                                            height: 25,
-                                            decoration: BoxDecoration(
-                                              color: Color(0xFF5A967A),
-                                              borderRadius: BorderRadius.circular(20),
-                                            ),
-                                            child: Stack(
-                                                children: [
-                                                  Positioned(
-                                                      top: 5,
-                                                      left: 10,
-                                                      child: Container(
-                                                        width: 15,
-                                                        height: 15,
-                                                        decoration: BoxDecoration(
-                                                          color: Color(0xFF006769),
-                                                          shape: BoxShape.circle,
-                                                        ),
-                                                        child: Center(
-                                                          child: Text(
-                                                            '31',
-                                                            style: TextStyle(
-                                                              color: Colors.white,
-                                                              fontSize: 10,
-                                                              fontWeight: FontWeight.bold,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      )
-                                                  ),
-                                                  Center(
-                                                    child: Text(
-                                                      "Softdrinks and Sodas",
-                                                      style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 14,
-                                                        fontWeight: FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ]
-                                            )
-                                        ),
-                                      ),
-                                      Positioned(
-                                        top: 935,
-                                        left: 0,
-                                        child: Container(
-                                            width: 190,
-                                            height: 25,
-                                            decoration: BoxDecoration(
-                                              color: Color(0xFF5A967A),
-                                              borderRadius: BorderRadius.circular(20),
-                                            ),
-                                            child: Stack(
-                                                children: [
-                                                  Positioned(
-                                                      top: 5,
-                                                      left: 10,
-                                                      child: Container(
-                                                        width: 15,
-                                                        height: 15,
-                                                        decoration: BoxDecoration(
-                                                          color: Color(0xFF006769),
-                                                          shape: BoxShape.circle,
-                                                        ),
-                                                        child: Center(
-                                                          child: Text(
-                                                            '32',
-                                                            style: TextStyle(
-                                                              color: Colors.white,
-                                                              fontSize: 10,
-                                                              fontWeight: FontWeight.bold,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      )
-                                                  ),
-                                                  Center(
-                                                    child: Text(
-                                                      "Skincare products",
-                                                      style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 14,
-                                                        fontWeight: FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ]
-                                            )
-                                        ),
-                                      ),
+                                      )
+
                                     ],
                                   ),
                                 ),
                               ),
-
                             ],
                           );
                         },
@@ -1678,29 +1405,9 @@ class CustomMenu extends StatelessWidget {
   }
 }
 
-Widget _menuItem(String text, {required VoidCallback onTap}) {
-  return GestureDetector(
-    onTap: onTap,
-    child: Container(
-      margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
-      padding: EdgeInsets.all(10.0),
-      decoration: BoxDecoration(
-        color: Color(0xFF006769),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Center(
-        child: Text(
-          text,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    ),
-  );
-}
+
+
+
 
 
 
