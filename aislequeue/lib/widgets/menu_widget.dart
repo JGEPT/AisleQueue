@@ -83,9 +83,9 @@ class CustomMenu extends StatelessWidget {
                                     children: [
                                       Positioned(
                                         top: 5,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -131,9 +131,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 35,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -179,9 +179,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 65,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -227,9 +227,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 95,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -275,9 +275,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 125,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -323,9 +323,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 155,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -371,9 +371,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 185,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -419,9 +419,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 215,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -467,9 +467,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 245,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -515,9 +515,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 275,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -563,9 +563,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 305,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -611,9 +611,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 335,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -659,9 +659,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 365,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -707,9 +707,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 395,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -755,9 +755,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 425,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -803,9 +803,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 455,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -851,9 +851,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 485,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -899,9 +899,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 515,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -947,9 +947,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 545,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -995,9 +995,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 575,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -1043,9 +1043,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 605,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -1091,9 +1091,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 635,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -1139,9 +1139,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 665,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -1187,9 +1187,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 695,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -1235,9 +1235,9 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 725,
-                                        left: 2,
+                                        left: 0,
                                         child: Container(
-                                          width: 195,
+                                          width: 190,
                                           height: 25,
                                           decoration: BoxDecoration(
                                             color: Color(0xFF5A967A),
@@ -1283,55 +1283,340 @@ class CustomMenu extends StatelessWidget {
                                       ),
                                       Positioned(
                                         top: 755,
-                                        right: 2,
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            showMenu(
-                                              context: context,
-                                              position: RelativeRect.fromLTRB(
-                                                MediaQuery.of(context).size.width - 87, // Right-aligned
-                                                755, // Distance from top
-                                                2, // Padding from the right edge
-                                                0, // Bottom of the screen
-                                              ),
-                                              items: [
-                                                PopupMenuItem(
-                                                  child: Container(
-                                                    width: 200,
-                                                    height: 850,
-                                                    color: Colors.blue[100], // For visualization
-                                                    child: Center(
-                                                      child: Text(
-                                                        "This is the Next Menu",
-                                                        style: TextStyle(fontSize: 16, color: Colors.black),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  value: 1,
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                          child: Container(
-                                            width: 85,
+                                        left: 0,
+                                        child: Container(
+                                            width: 190,
                                             height: 25,
                                             decoration: BoxDecoration(
                                               color: Color(0xFF5A967A),
                                               borderRadius: BorderRadius.circular(20),
                                             ),
-                                            child: Center(
-                                              child: Text(
-                                                "Next",
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
+                                            child: Stack(
+                                                children: [
+                                                  Positioned(
+                                                      top: 5,
+                                                      left: 10,
+                                                      child: Container(
+                                                        width: 15,
+                                                        height: 15,
+                                                        decoration: BoxDecoration(
+                                                          color: Color(0xFF006769),
+                                                          shape: BoxShape.circle,
+                                                        ),
+                                                        child: Center(
+                                                          child: Text(
+                                                            '26',
+                                                            style: TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: 10,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      )
+                                                  ),
+                                                  Center(
+                                                    child: Text(
+                                                      "Deodorant",
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ]
+                                            )
                                         ),
-                                      )
+                                      ),
+                                      Positioned(
+                                        top: 785,
+                                        left: 0,
+                                        child: Container(
+                                            width: 190,
+                                            height: 25,
+                                            decoration: BoxDecoration(
+                                              color: Color(0xFF5A967A),
+                                              borderRadius: BorderRadius.circular(20),
+                                            ),
+                                            child: Stack(
+                                                children: [
+                                                  Positioned(
+                                                      top: 5,
+                                                      left: 10,
+                                                      child: Container(
+                                                        width: 15,
+                                                        height: 15,
+                                                        decoration: BoxDecoration(
+                                                          color: Color(0xFF006769),
+                                                          shape: BoxShape.circle,
+                                                        ),
+                                                        child: Center(
+                                                          child: Text(
+                                                            '27',
+                                                            style: TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: 10,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      )
+                                                  ),
+                                                  Center(
+                                                    child: Text(
+                                                      "Toothpaste",
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ]
+                                            )
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 815,
+                                        left: 0,
+                                        child: Container(
+                                            width: 190,
+                                            height: 25,
+                                            decoration: BoxDecoration(
+                                              color: Color(0xFF5A967A),
+                                              borderRadius: BorderRadius.circular(20),
+                                            ),
+                                            child: Stack(
+                                                children: [
+                                                  Positioned(
+                                                      top: 5,
+                                                      left: 10,
+                                                      child: Container(
+                                                        width: 15,
+                                                        height: 15,
+                                                        decoration: BoxDecoration(
+                                                          color: Color(0xFF006769),
+                                                          shape: BoxShape.circle,
+                                                        ),
+                                                        child: Center(
+                                                          child: Text(
+                                                            '28',
+                                                            style: TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: 10,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      )
+                                                  ),
+                                                  Center(
+                                                    child: Text(
+                                                      "Vegetables",
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ]
+                                            )
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 845,
+                                        left: 0,
+                                        child: Container(
+                                            width: 190,
+                                            height: 25,
+                                            decoration: BoxDecoration(
+                                              color: Color(0xFF5A967A),
+                                              borderRadius: BorderRadius.circular(20),
+                                            ),
+                                            child: Stack(
+                                                children: [
+                                                  Positioned(
+                                                      top: 5,
+                                                      left: 10,
+                                                      child: Container(
+                                                        width: 15,
+                                                        height: 15,
+                                                        decoration: BoxDecoration(
+                                                          color: Color(0xFF006769),
+                                                          shape: BoxShape.circle,
+                                                        ),
+                                                        child: Center(
+                                                          child: Text(
+                                                            '29',
+                                                            style: TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: 10,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      )
+                                                  ),
+                                                  Center(
+                                                    child: Text(
+                                                      "Fruits",
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ]
+                                            )
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 875,
+                                        left: 0,
+                                        child: Container(
+                                            width: 190,
+                                            height: 25,
+                                            decoration: BoxDecoration(
+                                              color: Color(0xFF5A967A),
+                                              borderRadius: BorderRadius.circular(20),
+                                            ),
+                                            child: Stack(
+                                                children: [
+                                                  Positioned(
+                                                      top: 5,
+                                                      left: 10,
+                                                      child: Container(
+                                                        width: 15,
+                                                        height: 15,
+                                                        decoration: BoxDecoration(
+                                                          color: Color(0xFF006769),
+                                                          shape: BoxShape.circle,
+                                                        ),
+                                                        child: Center(
+                                                          child: Text(
+                                                            '30',
+                                                            style: TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: 10,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      )
+                                                  ),
+                                                  Center(
+                                                    child: Text(
+                                                      "Ice Creams",
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ]
+                                            )
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 905,
+                                        left: 0,
+                                        child: Container(
+                                            width: 190,
+                                            height: 25,
+                                            decoration: BoxDecoration(
+                                              color: Color(0xFF5A967A),
+                                              borderRadius: BorderRadius.circular(20),
+                                            ),
+                                            child: Stack(
+                                                children: [
+                                                  Positioned(
+                                                      top: 5,
+                                                      left: 10,
+                                                      child: Container(
+                                                        width: 15,
+                                                        height: 15,
+                                                        decoration: BoxDecoration(
+                                                          color: Color(0xFF006769),
+                                                          shape: BoxShape.circle,
+                                                        ),
+                                                        child: Center(
+                                                          child: Text(
+                                                            '31',
+                                                            style: TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: 10,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      )
+                                                  ),
+                                                  Center(
+                                                    child: Text(
+                                                      "Softdrinks and Sodas",
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ]
+                                            )
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 935,
+                                        left: 0,
+                                        child: Container(
+                                            width: 190,
+                                            height: 25,
+                                            decoration: BoxDecoration(
+                                              color: Color(0xFF5A967A),
+                                              borderRadius: BorderRadius.circular(20),
+                                            ),
+                                            child: Stack(
+                                                children: [
+                                                  Positioned(
+                                                      top: 5,
+                                                      left: 10,
+                                                      child: Container(
+                                                        width: 15,
+                                                        height: 15,
+                                                        decoration: BoxDecoration(
+                                                          color: Color(0xFF006769),
+                                                          shape: BoxShape.circle,
+                                                        ),
+                                                        child: Center(
+                                                          child: Text(
+                                                            '32',
+                                                            style: TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: 10,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      )
+                                                  ),
+                                                  Center(
+                                                    child: Text(
+                                                      "Skincare products",
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ]
+                                            )
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -1392,3 +1677,30 @@ class CustomMenu extends StatelessWidget {
     );
   }
 }
+
+Widget _menuItem(String text, {required VoidCallback onTap}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+      padding: EdgeInsets.all(10.0),
+      decoration: BoxDecoration(
+        color: Color(0xFF006769),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Center(
+        child: Text(
+          text,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+
+
