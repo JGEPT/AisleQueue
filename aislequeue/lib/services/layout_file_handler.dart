@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/layout_data.dart';
 
 class LayoutFileHandler {
-  static const String baseUrl = 'http://172.16.10.130:3000';
+  static const String baseUrl = 'http://192.168.1.7:3000';
 
   // Save a new layout
   static Future<String> saveLayout(LayoutData layout) async {
