@@ -262,4 +262,3 @@ class Menu extends StatelessWidget {
     );
   }
 }
-}

@@ -1386,7 +1386,6 @@ class CustomMenu extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
               value: 1,
             ),
           ],

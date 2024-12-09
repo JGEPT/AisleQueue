@@ -11,7 +11,7 @@ var DB *sql.DB
 
 func InitDatabase() {
 	var err error
-	DB, err = sql.Open("sqlite3", "./todo.db")
+	DB, err = sql.Open("sqlite3", "./AisleQueue.db")
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
@@ -32,6 +32,7 @@ func InitDatabase() {
 	// Create layouts table if not exists
 	createLayoutsTableSQL := `CREATE TABLE IF NOT EXISTS layouts (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
 	placed_tiles TEXT NOT NULL
 )`
 

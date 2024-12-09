@@ -51,26 +51,38 @@ class GridViewWidget extends StatelessWidget {
         maxScale: 2.0,
         constrained: false, // Allow unconstrained scaling
         child: LayoutBuilder(
-          builder: (context, constraints) {
-            return GestureDetector(
-              onTap: () => onGridTap(),
-              child: SizedBox(
-                width: gridWidth * cellSize,
-                height: gridHeight * cellSize,
-                child: Stack(
-                  children: [
-                    ..._buildGridLines(gridWidth, gridHeight, cellSize),
-                    ...placedTiles.map((tileData) => Positioned(
+        builder: (context, constraints) {
+          return GestureDetector(
+            onTap: () => onGridTap(),
+            child: SizedBox(
+              width: gridWidth * cellSize,
+              height: gridHeight * cellSize,
+              child: Stack(
+                children: [
+                  ..._buildGridLines(gridWidth, gridHeight, cellSize),
+                  ...placedTiles.map((tileData) {
+                    Color tileColor;
+                    switch (tileData.type) {
+                      case 'Cashier':
+                        tileColor = Colors.blue; // Color for Cashier
+                        break;
+                      case 'Price Checker':
+                        tileColor = Colors.orange; // Color for Price Checker
+                        break;
+                      default:
+                        tileColor = Colors.green.shade500; // Default for Aisle
+                    }
+                    return Positioned(
                       left: tileData.gridX * cellSize,
                       top: tileData.gridY * cellSize,
                       child: Opacity(
-                        opacity: isSearching && !tileData.category.toLowerCase().contains(searchQuery.toLowerCase()) 
+                        opacity: isSearching && !tileData .category.toLowerCase().contains(searchQuery.toLowerCase()) 
                             ? 0.2 
                             : 1.0,
                         child: Container(
                           width: tileData.width * cellSize,
                           height: tileData.height * cellSize,
-                          color: Colors.green.shade500,
+                          color: tileColor, // Use the determined color
                           child: Center(
                             child: Text(
                               tileData.category,
@@ -84,8 +96,8 @@ class GridViewWidget extends StatelessWidget {
                           ),
                         ),
                       ),
-                    )),
-                    if (isSelectingFirstPoint && isPlacementMode)
+                    );
+                  }).toList(),                    if (isSelectingFirstPoint && isPlacementMode)
                       Positioned(
                         left: currentGridX * cellSize,
                         top: currentGridY * cellSize,
