@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class CustomMenu extends StatelessWidget {
+  // Added key parameter to constructor
+  const CustomMenu({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return IconButton(
@@ -79,7 +81,7 @@ class CustomMenu extends StatelessWidget {
                           ),
                         ),
                       ),
-                      ),
+                    ),
                     // Third smaller box at yet another position
                     Positioned(
                       top: 400,
@@ -105,9 +107,9 @@ class CustomMenu extends StatelessWidget {
                   ],
                 ),
               ),
+            ),
               value: 1,
             ),
-
           ],
         );
       },

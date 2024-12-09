@@ -6,6 +6,7 @@ import '../widgets/circle_num.dart';
 import '../widgets/left_box.dart';
 import '../widgets/right_box.dart';
 import '../utils/app_colors.dart';
+import '../widgets/menu_widget.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -23,7 +24,7 @@ class HomeScreen extends StatelessWidget {
           const Positioned(
             top: 10,
             left: 20,
-            child: Icon(Icons.menu),
+            child: CustomMenu(),
           ),
           // Search Bar
           Positioned(
@@ -246,4 +247,19 @@ class HomeScreen extends StatelessWidget {
       ],
     );
   }
+}
+
+class Menu extends StatelessWidget {
+  const Menu({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.menu),
+      onPressed: () {
+        // Define menu button behavior here
+      },
+    );
+  }
+}
 }
