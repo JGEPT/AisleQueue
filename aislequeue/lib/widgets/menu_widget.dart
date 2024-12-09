@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 class CustomMenu extends StatelessWidget {
   // Added key parameter to constructor
   const CustomMenu({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return IconButton(
@@ -21,8 +20,6 @@ class CustomMenu extends StatelessWidget {
           ),
           items: [
             PopupMenuItem(
-              value: 1,
-              // Moved child to the end of the argument list
               child: Container(
                 width: 200,
                 height: 850,
@@ -110,6 +107,8 @@ class CustomMenu extends StatelessWidget {
                   ],
                 ),
               ),
+            ),
+              value: 1,
             ),
           ],
         );
