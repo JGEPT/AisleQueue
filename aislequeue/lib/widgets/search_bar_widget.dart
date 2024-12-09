@@ -1,20 +1,15 @@
 import 'package:flutter/material.dart';
 
-class CategorySearchBar extends StatefulWidget {
-  final TextEditingController searchController;
-  final Function(String) onFilterChanged;
+class SearchBar extends StatelessWidget {
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
 
-  const CategorySearchBar({
-    super.key, 
-    required this.searchController, 
-    required this.onFilterChanged
-  });
+  const SearchBar({
+    Key? key,
+    required this.controller,
+    required this.onChanged,
+  }) : super(key: key);
 
-  @override
-  CategorySearchBarState createState() => CategorySearchBarState();
-}
-
-class CategorySearchBarState extends State<CategorySearchBar> {
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -33,26 +28,23 @@ class CategorySearchBarState extends State<CategorySearchBar> {
           ],
         ),
         child: TextField(
-          controller: widget.searchController,
+          controller: controller,
           decoration: InputDecoration(
             hintText: 'Search categories...',
             prefixIcon: const Icon(Icons.search, color: Colors.green),
-            suffixIcon: widget.searchController.text.isNotEmpty
+            suffixIcon: controller.text.isNotEmpty
                 ? IconButton(
                     icon: const Icon(Icons.clear, color: Colors.green),
                     onPressed: () {
-                      widget.searchController.clear();
-                      widget.onFilterChanged('');
+                      controller.clear();
+                      onChanged('');
                     },
                   )
                 : null,
             border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16, 
-              vertical: 12
-            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
-          onChanged: widget.onFilterChanged,
+          onChanged: onChanged,
         ),
       ),
     );
