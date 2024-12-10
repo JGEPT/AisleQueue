@@ -4,6 +4,7 @@ class PlacedTileData {
   int width;
   int height;
   String category;
+  String type; // New property to define the type of tile
 
   PlacedTileData({
     required this.gridX,
@@ -11,5 +12,6 @@ class PlacedTileData {
     required this.width,
     required this.height,
     required this.category,
+    required this.type, // Include type in the constructor
   });
 }

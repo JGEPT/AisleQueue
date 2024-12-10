@@ -36,7 +36,7 @@ class _LayoutCreatorState extends State<LayoutCreator> {
       TransformationController();
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
-  String? _currentLoadedLayoutId; // Track the currently loaded layout ID
+  String? _currentLoadedLayoutName; // Track the currently loaded layout name
 
   @override
   void initState() {
@@ -285,59 +285,82 @@ class _LayoutCreatorState extends State<LayoutCreator> {
     );
   }
 
-  Future<void> _showRectangleCategoryDialog(
-      int startX, int startY, int endX, int endY) async {
-    final TextEditingController categoryController = TextEditingController();
+ Future<void> _showRectangleCategoryDialog(int startX, int startY, int endX, int endY) async {
+  final TextEditingController categoryController = TextEditingController();
+  String selectedType = 'Aisle'; // Default type
 
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Enter Category Name for Rectangle'),
-          content: TextField(
-            controller: categoryController,
-            decoration:
-                const InputDecoration(hintText: 'Enter a category name'),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                _resetSelection();
-              },
+  return showDialog<void>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Enter Category Name for Rectangle'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: categoryController,
+              decoration: const InputDecoration(hintText: 'Enter a category name'),
             ),
-            TextButton(
-              child: const Text('Add'),
-              onPressed: () {
-                if (categoryController.text.isNotEmpty) {
-                  _placedTiles.removeWhere((tile) =>
-                      tile.gridX >= startX &&
-                      tile.gridX <= endX &&
-                      tile.gridY >= startY &&
-                      tile.gridY <= endY);
-
-                  setState(() {
-                    final newTile = PlacedTileData(
-                      gridX: startX,
-                      gridY: startY,
-                      width: endX - startX + 1,
-                      height: endY - startY + 1,
-                      category: categoryController.text,
+            StatefulBuilder(
+              builder: (BuildContext context, StateSetter dropdownState) {
+                return DropdownButton<String>(
+                  value: selectedType,
+                  items: <String>['Aisle', 'Cashier', 'Price Checker'].map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
                     );
-                    _placedTiles.add(newTile);
-                  });
-
-                  Navigator.of(context).pop();
-                  _resetSelection();
-                }
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    dropdownState(() {
+                      selectedType = newValue!;
+                    });
+                  },
+                );
               },
             ),
           ],
-        );
-      },
-    );
-  }
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              _resetSelection();
+            },
+          ),
+          TextButton(
+            child: const Text('Add'),
+            onPressed: () {
+              if (categoryController.text.isNotEmpty) {
+                _placedTiles.removeWhere((tile) =>
+                    tile.gridX >= startX &&
+                    tile.gridX <= endX &&
+                    tile.gridY >= startY &&
+                    tile.gridY <= endY);
+
+                setState(() {
+                  final newTile = PlacedTileData(
+                    gridX: startX,
+                    gridY: startY,
+                    width: endX - startX + 1,
+                    height: endY - startY + 1,
+                    category: categoryController.text,
+                    type: selectedType, // Set the type of the tile
+                  );
+                  _placedTiles.add(newTile);
+                });
+
+                Navigator.of(context).pop();
+                _resetSelection();
+              }
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
 
   void _resetSelection() {
     setState(() {
@@ -369,11 +392,11 @@ class _LayoutCreatorState extends State<LayoutCreator> {
   }
 
   void _saveLayout() async {
-    if (_currentLoadedLayoutId != null) {
+    if (_currentLoadedLayoutName != null) {
       // If we're editing an existing layout, offer to update it
       bool? confirmUpdate = await _showConfirmationDialog(
         'Update Existing Layout',
-        'Do you want to update the existing layout with ID: $_currentLoadedLayoutId?',
+        'Do you want to update the existing layout with name: $_currentLoadedLayoutName?',
       );
 
       if (confirmUpdate == true) {
@@ -383,14 +406,14 @@ class _LayoutCreatorState extends State<LayoutCreator> {
     }
 
     // If not updating an existing layout, proceed with saving as new
-    String? fileName = await _showFileNameDialog('Save Layout');
-    if (fileName != null && fileName.isNotEmpty) {
-      LayoutData layout = LayoutData(placedTiles: _placedTiles);
+    String? layoutName = await _showFileNameDialog('Save Layout');
+    if (layoutName != null && layoutName.isNotEmpty) {
+      LayoutData layout = LayoutData(name: layoutName, placedTiles: _placedTiles);
       try {
-        String layoutId = await LayoutFileHandler.saveLayout(layout);
-        _showSuccessDialog('Layout saved with ID: $layoutId');
+        await LayoutFileHandler.saveLayout(layout);
+        _showSuccessDialog('Layout saved with name: $layoutName');
         setState(() {
-          _currentLoadedLayoutId = layoutId;
+          _currentLoadedLayoutName = layoutName;
         });
       } catch (e) {
         _showErrorDialog('Failed to save layout: $e');
@@ -399,11 +422,11 @@ class _LayoutCreatorState extends State<LayoutCreator> {
   }
 
   Future<void> _updateExistingLayout() async {
-    if (_currentLoadedLayoutId == null) return;
+    if (_currentLoadedLayoutName == null) return;
 
     try {
-      LayoutData layout = LayoutData(placedTiles: _placedTiles);
-      await LayoutFileHandler.updateLayout(_currentLoadedLayoutId!, layout);
+      LayoutData layout = LayoutData(placedTiles: _placedTiles, name: _currentLoadedLayoutName!);
+      await LayoutFileHandler.updateLayout(_currentLoadedLayoutName!, layout);
       _showSuccessDialog('Layout updated successfully.');
     } catch (e) {
       _showErrorDialog('Failed to update layout: $e');
@@ -411,20 +434,19 @@ class _LayoutCreatorState extends State<LayoutCreator> {
   }
 
   void _loadLayout() async {
-    String? fileName = await _showFileNameDialog('Load Layout');
-    if (fileName != null && fileName.isNotEmpty) {
+    String? layoutName = await _showFileNameDialog('Load Layout');
+    if (layoutName != null && layoutName.isNotEmpty) {
       try {
-        LayoutData? layout = await LayoutFileHandler.loadLayout(fileName);
+        LayoutData? layout = await LayoutFileHandler.loadLayout(layoutName);
         if (layout != null) {
           setState(() {
             _placedTiles.clear();
             _placedTiles.addAll(layout.placedTiles);
-            _currentLoadedLayoutId = fileName; // Track the loaded layout ID
+            _currentLoadedLayoutName = layoutName; // Track the loaded layout name
           });
           _showSuccessDialog('Layout loaded successfully.');
         } else {
-          _showErrorDialog(
-              'Failed to load layout. Please check the file name.');
+          _showErrorDialog('Failed to load layout. Please check the name.');
         }
       } catch (e) {
         _showErrorDialog('Failed to load layout: $e');
@@ -433,22 +455,22 @@ class _LayoutCreatorState extends State<LayoutCreator> {
   }
 
   void _deleteLayout() async {
-    String? layoutId = await _showFileNameDialog('Delete Layout ID');
-    if (layoutId != null && layoutId.isNotEmpty) {
+    String? layoutName = await _showFileNameDialog('Delete Layout Name');
+    if (layoutName != null && layoutName.isNotEmpty) {
       bool? confirmDelete = await _showConfirmationDialog(
         'Confirm Delete',
-        'Are you sure you want to delete the layout with ID: $layoutId?',
+        'Are you sure you want to delete the layout with name: $layoutName?',
       );
 
       if (confirmDelete == true) {
         try {
-          await LayoutFileHandler.deleteLayout(layoutId);
+          await LayoutFileHandler.deleteLayout(layoutName);
 
           // Clear current layout if the deleted layout was the loaded one
-          if (layoutId == _currentLoadedLayoutId) {
+          if (layoutName == _currentLoadedLayoutName) {
             setState(() {
               _placedTiles.clear();
-              _currentLoadedLayoutId = null;
+              _currentLoadedLayoutName = null;
             });
           }
 
@@ -458,6 +480,15 @@ class _LayoutCreatorState extends State<LayoutCreator> {
         }
       }
     }
+  }
+
+  // New button for creating a new layout
+  void _createNewLayout() {
+    setState(() {
+      _placedTiles.clear();
+      _currentLoadedLayoutName = null; // Reset the current layout name
+    });
+    _showSuccessDialog('New layout created.');
   }
 
   Future<bool?> _showConfirmationDialog(String title, String content) async {
@@ -574,14 +605,23 @@ class _LayoutCreatorState extends State<LayoutCreator> {
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
+          // New Layout Button
+          Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: FloatingActionButton(
+              onPressed: _createNewLayout,
+              tooltip: 'Create New Layout',
+              heroTag: 'newLayoutButton',
+              child: const Icon(Icons.add),
+            ),
+          ),
           // Edit/Remove Button
           Padding(
             padding: const EdgeInsets.only(right: 10),
             child: FloatingActionButton(
               onPressed: _toggleRemoveMode,
               tooltip: 'Edit/Remove Tiles',
-              backgroundColor:
-                  _isRemoveMode ? Colors.red[700] : Colors.amber[800],
+              backgroundColor: _isRemoveMode ? Colors.red[700] : Colors.amber[800],
               heroTag: 'editRemoveButton',
               child: Icon(
                 _isRemoveMode ? Icons.close : Icons.edit,
@@ -603,8 +643,7 @@ class _LayoutCreatorState extends State<LayoutCreator> {
             child: FloatingActionButton(
               onPressed: _togglePlacementMode,
               tooltip: 'Add Tiles',
-              backgroundColor:
-                  _isPlacementMode ? Colors.red[700] : Colors.green[700],
+              backgroundColor: _isPlacementMode ? Colors.red[700] : Colors.green[700],
               heroTag: 'placementButton',
               child: Icon(
                 _isPlacementMode ? Icons.close : Icons.add,
