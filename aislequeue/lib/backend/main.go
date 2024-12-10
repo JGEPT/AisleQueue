@@ -31,7 +31,7 @@ func main() {
 	// Layout routes
 	app.Get("/layouts/:name", handlers.LoadLayout) // Changed from :id to :name
 	app.Post("/save-layout", handlers.SaveLayout)
-	app.Put("/update-layout/:id", handlers.UpdateLayout)
+	app.Put("/update-layout/:name", handlers.UpdateLayout)
 	app.Delete("/delete-layout/:name", handlers.DeleteLayout) // Changed from :id to :name
 	app.Get("/layouts", handlers.ListLayouts)
 
