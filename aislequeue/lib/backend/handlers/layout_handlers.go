@@ -5,7 +5,7 @@ import (
 	"backend/models"
 	"encoding/json"
 	"github.com/gofiber/fiber/v2"
-	"strconv"
+  "net/url"
 )
 
 // SaveLayout saves a new layout
@@ -39,10 +39,14 @@ func SaveLayout(c *fiber.Ctx) error {
 // LoadLayout retrieves a layout by ID
 func LoadLayout(c *fiber.Ctx) error {
 	name := c.Params("name") // Get layout name from URL
-	var layout models.Layout
+    name, err := url.QueryUnescape(name) // Decode the name
+    if err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": "Invalid layout name"})
+    }	
+  var layout models.Layout
 	var placedTilesJSON string
 
-	err := database.DB.QueryRow("SELECT placed_tiles FROM layouts WHERE name = ?", name).Scan(&placedTilesJSON)
+	err = database.DB.QueryRow("SELECT placed_tiles FROM layouts WHERE name = ?", name).Scan(&placedTilesJSON)
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"error": "Layout not found"})
 	}
@@ -55,16 +59,20 @@ func LoadLayout(c *fiber.Ctx) error {
 	return c.JSON(layout)
 }
 
-// UpdateLayout modifies an existing layout
+// UpdateLayout modifies an existing layout based on its name
 func UpdateLayout(c *fiber.Ctx) error {
-	id, err := strconv.Atoi(c.Params("id"))
-	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "Invalid layout ID"})
-	}
-
+	name := c.Params("name") // Get layout name from URL
+    name, err := url.QueryUnescape(name) // Decode the name
+    if err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": "Invalid layout name"})
+    }
 	layout := new(models.Layout)
 	if err := c.BodyParser(layout); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	if layout.Name == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "Layout name is required"})
 	}
 
 	placedTilesJSON, err := json.Marshal(layout.PlacedTiles)
@@ -72,20 +80,25 @@ func UpdateLayout(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to marshal placed tiles"})
 	}
 
-	_, err = database.DB.Exec("UPDATE layouts SET placed_tiles = ? WHERE id = ?", placedTilesJSON, id)
+	// Update layout based on name
+	_, err = database.DB.Exec("UPDATE layouts SET placed_tiles = ? WHERE name = ?", placedTilesJSON, name)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to update layout"})
 	}
 
-	layout.ID = id
+	layout.Name = name // Set the name in the layout object
 	return c.JSON(layout)
 }
 
 // DeleteLayout removes a layout by ID
 func DeleteLayout(c *fiber.Ctx) error {
-	name := c.Params("name") // Get layout name from URL
+  name := c.Params("name") // Get layout name from URL
+    name, err := url.QueryUnescape(name) // Decode the name
+    if err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": "Invalid layout name"})
+    }	
 
-	_, err := database.DB.Exec("DELETE FROM layouts WHERE name = ?", name)
+	_, err = database.DB.Exec("DELETE FROM layouts WHERE name = ?", name)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to delete layout"})
 	}

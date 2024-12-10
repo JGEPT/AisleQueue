@@ -285,82 +285,85 @@ class _LayoutCreatorState extends State<LayoutCreator> {
     );
   }
 
- Future<void> _showRectangleCategoryDialog(int startX, int startY, int endX, int endY) async {
-  final TextEditingController categoryController = TextEditingController();
-  String selectedType = 'Aisle'; // Default type
+  Future<void> _showRectangleCategoryDialog(
+      int startX, int startY, int endX, int endY) async {
+    final TextEditingController categoryController = TextEditingController();
+    String selectedType = 'Aisle'; // Default type
 
-  return showDialog<void>(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Enter Category Name for Rectangle'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: categoryController,
-              decoration: const InputDecoration(hintText: 'Enter a category name'),
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Enter Category Name for Rectangle'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: categoryController,
+                decoration:
+                    const InputDecoration(hintText: 'Enter a category name'),
+              ),
+              StatefulBuilder(
+                builder: (BuildContext context, StateSetter dropdownState) {
+                  return DropdownButton<String>(
+                    value: selectedType,
+                    items: <String>['Aisle', 'Cashier', 'Price Checker']
+                        .map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      dropdownState(() {
+                        selectedType = newValue!;
+                      });
+                    },
+                  );
+                },
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _resetSelection();
+              },
             ),
-            StatefulBuilder(
-              builder: (BuildContext context, StateSetter dropdownState) {
-                return DropdownButton<String>(
-                  value: selectedType,
-                  items: <String>['Aisle', 'Cashier', 'Price Checker'].map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
+            TextButton(
+              child: const Text('Add'),
+              onPressed: () {
+                if (categoryController.text.isNotEmpty) {
+                  _placedTiles.removeWhere((tile) =>
+                      tile.gridX >= startX &&
+                      tile.gridX <= endX &&
+                      tile.gridY >= startY &&
+                      tile.gridY <= endY);
+
+                  setState(() {
+                    final newTile = PlacedTileData(
+                      gridX: startX,
+                      gridY: startY,
+                      width: endX - startX + 1,
+                      height: endY - startY + 1,
+                      category: categoryController.text,
+                      type: selectedType, // Set the type of the tile
                     );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    dropdownState(() {
-                      selectedType = newValue!;
-                    });
-                  },
-                );
+                    _placedTiles.add(newTile);
+                  });
+
+                  Navigator.of(context).pop();
+                  _resetSelection();
+                }
               },
             ),
           ],
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Cancel'),
-            onPressed: () {
-              Navigator.of(context).pop();
-              _resetSelection();
-            },
-          ),
-          TextButton(
-            child: const Text('Add'),
-            onPressed: () {
-              if (categoryController.text.isNotEmpty) {
-                _placedTiles.removeWhere((tile) =>
-                    tile.gridX >= startX &&
-                    tile.gridX <= endX &&
-                    tile.gridY >= startY &&
-                    tile.gridY <= endY);
-
-                setState(() {
-                  final newTile = PlacedTileData(
-                    gridX: startX,
-                    gridY: startY,
-                    width: endX - startX + 1,
-                    height: endY - startY + 1,
-                    category: categoryController.text,
-                    type: selectedType, // Set the type of the tile
-                  );
-                  _placedTiles.add(newTile);
-                });
-
-                Navigator.of(context).pop();
-                _resetSelection();
-              }
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
 
   void _resetSelection() {
     setState(() {
@@ -408,7 +411,8 @@ class _LayoutCreatorState extends State<LayoutCreator> {
     // If not updating an existing layout, proceed with saving as new
     String? layoutName = await _showFileNameDialog('Save Layout');
     if (layoutName != null && layoutName.isNotEmpty) {
-      LayoutData layout = LayoutData(name: layoutName, placedTiles: _placedTiles);
+      LayoutData layout =
+          LayoutData(name: layoutName, placedTiles: _placedTiles);
       try {
         await LayoutFileHandler.saveLayout(layout);
         _showSuccessDialog('Layout saved with name: $layoutName');
@@ -425,7 +429,8 @@ class _LayoutCreatorState extends State<LayoutCreator> {
     if (_currentLoadedLayoutName == null) return;
 
     try {
-      LayoutData layout = LayoutData(placedTiles: _placedTiles, name: _currentLoadedLayoutName!);
+      LayoutData layout = LayoutData(
+          placedTiles: _placedTiles, name: _currentLoadedLayoutName!);
       await LayoutFileHandler.updateLayout(_currentLoadedLayoutName!, layout);
       _showSuccessDialog('Layout updated successfully.');
     } catch (e) {
@@ -434,53 +439,135 @@ class _LayoutCreatorState extends State<LayoutCreator> {
   }
 
   void _loadLayout() async {
-    String? layoutName = await _showFileNameDialog('Load Layout');
-    if (layoutName != null && layoutName.isNotEmpty) {
-      try {
-        LayoutData? layout = await LayoutFileHandler.loadLayout(layoutName);
+    try {
+      List<String> availableLayouts = await LayoutFileHandler.listLayouts();
+
+      if (availableLayouts.isEmpty) {
+        if (!mounted) return;
+        _showErrorDialog('No layouts available.');
+        return;
+      }
+
+      if (!mounted) return;
+      String? selectedLayout = await showDialog<String>(
+        context: context,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            title: const Text('Select Layout to Load'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: availableLayouts.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return ListTile(
+                    title: Text(availableLayouts[index]),
+                    onTap: () {
+                      Navigator.of(dialogContext).pop(availableLayouts[index]);
+                    },
+                  );
+                },
+              ),
+            ),
+          );
+        },
+      );
+
+      if (!mounted) return;
+
+      if (selectedLayout != null && selectedLayout.isNotEmpty) {
+        String encodedLayoutName = Uri.encodeComponent(selectedLayout);
+        LayoutData? layout =
+            await LayoutFileHandler.loadLayout(encodedLayoutName);
+        if (!mounted) return;
+
         if (layout != null) {
           setState(() {
             _placedTiles.clear();
             _placedTiles.addAll(layout.placedTiles);
-            _currentLoadedLayoutName = layoutName; // Track the loaded layout name
+            _currentLoadedLayoutName = selectedLayout;
           });
           _showSuccessDialog('Layout loaded successfully.');
         } else {
-          _showErrorDialog('Failed to load layout. Please check the name.');
+          _showErrorDialog('Failed to load layout. Please try again.');
         }
-      } catch (e) {
-        _showErrorDialog('Failed to load layout: $e');
       }
+    } catch (e) {
+      if (!mounted) return;
+      _showErrorDialog('Failed to retrieve layouts: $e');
     }
   }
 
   void _deleteLayout() async {
-    String? layoutName = await _showFileNameDialog('Delete Layout Name');
-    if (layoutName != null && layoutName.isNotEmpty) {
+  try {
+    List<String> availableLayouts = await LayoutFileHandler.listLayouts();
+
+    if (availableLayouts.isEmpty) {
+      if (!mounted) return;
+      _showErrorDialog('No layouts available to delete.');
+      return;
+    }
+
+    if (!mounted) return;
+    String? selectedLayout = await showDialog<String>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Select Layout to Delete'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: availableLayouts.length,
+              itemBuilder: (BuildContext context, int index) {
+                return ListTile(
+                  title: Text(availableLayouts[index]),
+                  onTap: () {
+                    Navigator.of(dialogContext).pop(availableLayouts[index]);
+                  },
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+
+    if (!mounted) return;
+
+    if (selectedLayout != null && selectedLayout.isNotEmpty) {
+      // URL encode the selected layout name
+      String encodedLayoutName = Uri.encodeComponent(selectedLayout);
+      
+      // Confirm deletion
       bool? confirmDelete = await _showConfirmationDialog(
         'Confirm Delete',
-        'Are you sure you want to delete the layout with name: $layoutName?',
+        'Are you sure you want to delete the layout with name: $selectedLayout?',
       );
 
+      if (!mounted) return;
+
       if (confirmDelete == true) {
-        try {
-          await LayoutFileHandler.deleteLayout(layoutName);
+        await LayoutFileHandler.deleteLayout(encodedLayoutName); // Use the encoded name
 
-          // Clear current layout if the deleted layout was the loaded one
-          if (layoutName == _currentLoadedLayoutName) {
-            setState(() {
-              _placedTiles.clear();
-              _currentLoadedLayoutName = null;
-            });
-          }
+        if (!mounted) return;
 
-          _showSuccessDialog('Layout deleted successfully.');
-        } catch (e) {
-          _showErrorDialog('Failed to delete layout: $e');
+        // Clear current layout if the deleted layout was the loaded one
+        if (selectedLayout == _currentLoadedLayoutName) {
+          setState(() {
+            _placedTiles.clear();
+            _currentLoadedLayoutName = null;
+          });
         }
+
+        _showSuccessDialog('Layout deleted successfully.');
       }
     }
+  } catch (e) {
+    if (!mounted) return;
+    _showErrorDialog('Failed to retrieve or delete layout: $e');
   }
+}
 
   // New button for creating a new layout
   void _createNewLayout() {
@@ -621,7 +708,8 @@ class _LayoutCreatorState extends State<LayoutCreator> {
             child: FloatingActionButton(
               onPressed: _toggleRemoveMode,
               tooltip: 'Edit/Remove Tiles',
-              backgroundColor: _isRemoveMode ? Colors.red[700] : Colors.amber[800],
+              backgroundColor:
+                  _isRemoveMode ? Colors.red[700] : Colors.amber[800],
               heroTag: 'editRemoveButton',
               child: Icon(
                 _isRemoveMode ? Icons.close : Icons.edit,
@@ -643,7 +731,8 @@ class _LayoutCreatorState extends State<LayoutCreator> {
             child: FloatingActionButton(
               onPressed: _togglePlacementMode,
               tooltip: 'Add Tiles',
-              backgroundColor: _isPlacementMode ? Colors.red[700] : Colors.green[700],
+              backgroundColor:
+                  _isPlacementMode ? Colors.red[700] : Colors.green[700],
               heroTag: 'placementButton',
               child: Icon(
                 _isPlacementMode ? Icons.close : Icons.add,
