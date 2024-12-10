@@ -1,0 +1,56 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import '../utils/app_colors.dart';
+
+class DropdownMenuOverlay {
+  OverlayEntry? _overlayEntry;
+  final LayerLink _layerLink;
+
+  DropdownMenuOverlay(this._layerLink);
+
+  void show(BuildContext context) {
+    if (_overlayEntry == null) {
+      _overlayEntry = OverlayEntry(
+        builder: (context) => Positioned(
+          width: 250,
+          child: CompositedTransformFollower(
+            link: _layerLink,
+            showWhenUnlinked: false,
+            offset: const Offset(0, 40),
+            child: Material(
+              elevation: 4.0,
+              color: AppColors.backgroundColor,
+              borderRadius: BorderRadius.circular(8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildDropdownItem('Option 1', context),
+                  _buildDropdownItem('Option 2', context),
+                  _buildDropdownItem('Option 3', context),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      Overlay.of(context)?.insert(_overlayEntry!);
+    }
+  }
+
+  void hide() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
+  Widget _buildDropdownItem(String title, BuildContext context) {
+    return ListTile(
+      title: Text(title),
+      onTap: () {
+        hide();
+        // Handle item selection
+        print('Selected: $title');
+      },
+    );
+  }
+}
