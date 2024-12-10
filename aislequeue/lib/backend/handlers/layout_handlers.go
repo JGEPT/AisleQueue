@@ -62,7 +62,10 @@ func LoadLayout(c *fiber.Ctx) error {
 // UpdateLayout modifies an existing layout based on its name
 func UpdateLayout(c *fiber.Ctx) error {
 	name := c.Params("name") // Get layout name from URL
-  
+    name, err := url.QueryUnescape(name) // Decode the name
+    if err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": "Invalid layout name"})
+    }
 	layout := new(models.Layout)
 	if err := c.BodyParser(layout); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request body"})
