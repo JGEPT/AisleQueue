@@ -40,18 +40,20 @@ func InitDatabase() {
 	if err != nil {
 		log.Fatal("Failed to create layouts table:", err)
 	}
-  //Create inventory table if not exists
+	// Create inventory table if not exists
 	createInventoryTableSQL := `CREATE TABLE IF NOT EXISTS inventory (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    aisle_id INTEGER NOT NULL,
-    product_name TEXT NOT NULL,
-    quantity INTEGER NOT NULL,
-    FOREIGN KEY (aisle_id) REFERENCES layouts(id)
-)`
+        id TEXT PRIMARY KEY,
+        layout_name TEXT NOT NULL,
+        tile_category TEXT NOT NULL,
+        item_name TEXT NOT NULL,
+        quantity INTEGER NOT NULL,
+        price REAL NOT NULL,
+        FOREIGN KEY(layout_name) REFERENCES layouts(name)
+    )`
 
 	_, err = DB.Exec(createInventoryTableSQL)
 	if err != nil {
-		log.Fatal("Failed to create layouts table:", err)
+		log.Fatal("Failed to create inventory table:", err)
 	}
 }
 

@@ -35,10 +35,9 @@ func main() {
 	app.Delete("/delete-layout/:name", handlers.DeleteLayout) // Changed from :id to :name
 	app.Get("/layouts", handlers.ListLayouts)
 
-	app.Post("/inventory", handlers.AddInventory)
-	app.Get("/inventory/:aisleId", handlers.GetInventory)
-	app.Put("/inventory/:id", handlers.UpdateInventory)
-	app.Delete("/inventory/:id", handlers.DeleteInventory)
+	// Inventory routes
+	app.Post("/inventory/save", handlers.SaveInventoryForLayout)
+	app.Get("/inventory/:layout_name/:tile_category", handlers.LoadInventoryForLayoutAndCategory)
 
 	// Start server
 	log.Println("Server started on :3000")

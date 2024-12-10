@@ -6,6 +6,8 @@ import '../models/placed_tile_data.dart';
 import '../utils/device_type.dart';
 import '../models/layout_data.dart';
 import '../services/layout_file_handler.dart';
+import '../models/inventory_items.dart';
+import '../services/inventory_service.dart';
 
 class LayoutCreator extends StatefulWidget {
   const LayoutCreator({super.key, required this.title});
@@ -155,9 +157,10 @@ class _LayoutCreatorState extends State<LayoutCreator> {
                 ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    _showEditCategoryDialog(tileToModify);
+                    _showInventoryScreen(
+                        tileToModify); // Open inventory management
                   },
-                  child: const Text('Edit Category'),
+                  child: const Text('Manage Inventory'),
                 ),
               ],
             ),
@@ -404,6 +407,13 @@ class _LayoutCreatorState extends State<LayoutCreator> {
 
       if (confirmUpdate == true) {
         await _updateExistingLayout();
+        for (var tile in _placedTiles) {
+          await InventoryService.saveInventory(
+            layoutName: _currentLoadedLayoutName ?? 'default',
+            tileCategory: tile.category,
+            inventoryItems: tile.inventory,
+          );
+        }
         return;
       }
     }
@@ -415,6 +425,13 @@ class _LayoutCreatorState extends State<LayoutCreator> {
           LayoutData(name: layoutName, placedTiles: _placedTiles);
       try {
         await LayoutFileHandler.saveLayout(layout);
+        for (var tile in _placedTiles) {
+          await InventoryService.saveInventory(
+            layoutName: _currentLoadedLayoutName ?? 'default',
+            tileCategory: tile.category,
+            inventoryItems: tile.inventory,
+          );
+        }
         _showSuccessDialog('Layout saved with name: $layoutName');
         setState(() {
           _currentLoadedLayoutName = layoutName;
@@ -499,75 +516,76 @@ class _LayoutCreatorState extends State<LayoutCreator> {
   }
 
   void _deleteLayout() async {
-  try {
-    List<String> availableLayouts = await LayoutFileHandler.listLayouts();
+    try {
+      List<String> availableLayouts = await LayoutFileHandler.listLayouts();
 
-    if (availableLayouts.isEmpty) {
+      if (availableLayouts.isEmpty) {
+        if (!mounted) return;
+        _showErrorDialog('No layouts available to delete.');
+        return;
+      }
+
       if (!mounted) return;
-      _showErrorDialog('No layouts available to delete.');
-      return;
-    }
-
-    if (!mounted) return;
-    String? selectedLayout = await showDialog<String>(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Select Layout to Delete'),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: availableLayouts.length,
-              itemBuilder: (BuildContext context, int index) {
-                return ListTile(
-                  title: Text(availableLayouts[index]),
-                  onTap: () {
-                    Navigator.of(dialogContext).pop(availableLayouts[index]);
-                  },
-                );
-              },
+      String? selectedLayout = await showDialog<String>(
+        context: context,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            title: const Text('Select Layout to Delete'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: availableLayouts.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return ListTile(
+                    title: Text(availableLayouts[index]),
+                    onTap: () {
+                      Navigator.of(dialogContext).pop(availableLayouts[index]);
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-        );
-      },
-    );
-
-    if (!mounted) return;
-
-    if (selectedLayout != null && selectedLayout.isNotEmpty) {
-      // URL encode the selected layout name
-      String encodedLayoutName = Uri.encodeComponent(selectedLayout);
-      
-      // Confirm deletion
-      bool? confirmDelete = await _showConfirmationDialog(
-        'Confirm Delete',
-        'Are you sure you want to delete the layout with name: $selectedLayout?',
+          );
+        },
       );
 
       if (!mounted) return;
 
-      if (confirmDelete == true) {
-        await LayoutFileHandler.deleteLayout(encodedLayoutName); // Use the encoded name
+      if (selectedLayout != null && selectedLayout.isNotEmpty) {
+        // URL encode the selected layout name
+        String encodedLayoutName = Uri.encodeComponent(selectedLayout);
+
+        // Confirm deletion
+        bool? confirmDelete = await _showConfirmationDialog(
+          'Confirm Delete',
+          'Are you sure you want to delete the layout with name: $selectedLayout?',
+        );
 
         if (!mounted) return;
 
-        // Clear current layout if the deleted layout was the loaded one
-        if (selectedLayout == _currentLoadedLayoutName) {
-          setState(() {
-            _placedTiles.clear();
-            _currentLoadedLayoutName = null;
-          });
-        }
+        if (confirmDelete == true) {
+          await LayoutFileHandler.deleteLayout(
+              encodedLayoutName); // Use the encoded name
 
-        _showSuccessDialog('Layout deleted successfully.');
+          if (!mounted) return;
+
+          // Clear current layout if the deleted layout was the loaded one
+          if (selectedLayout == _currentLoadedLayoutName) {
+            setState(() {
+              _placedTiles.clear();
+              _currentLoadedLayoutName = null;
+            });
+          }
+
+          _showSuccessDialog('Layout deleted successfully.');
+        }
       }
+    } catch (e) {
+      if (!mounted) return;
+      _showErrorDialog('Failed to retrieve or delete layout: $e');
     }
-  } catch (e) {
-    if (!mounted) return;
-    _showErrorDialog('Failed to retrieve or delete layout: $e');
   }
-}
 
   // New button for creating a new layout
   void _createNewLayout() {
@@ -650,6 +668,249 @@ class _LayoutCreatorState extends State<LayoutCreator> {
             TextButton(
               child: const Text('OK'),
               onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showInventoryScreen(PlacedTileData tile) async {
+    try {
+      // Try to load existing inventory from backend
+      tile.inventory = await InventoryService.loadInventory(
+        layoutName: _currentLoadedLayoutName ?? 'default',
+        tileCategory: tile.category,
+      );
+    } catch (e) {
+      // If loading fails, use existing or empty inventory
+      tile.inventory = tile.inventory ?? [];
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return DraggableScrollableSheet(
+            initialChildSize: 0.9,
+            maxChildSize: 0.9,
+            minChildSize: 0.5,
+            builder: (_, controller) => Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      '${tile.category} Inventory',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: tile.inventory.isEmpty
+                        ? Center(child: Text('No items in inventory'))
+                        : ListView.builder(
+                            itemCount: tile.inventory.length,
+                            itemBuilder: (context, index) {
+                              final item = tile.inventory[index];
+                              return ListTile(
+                                title: Text(item.name),
+                                subtitle: Text(
+                                  'Quantity: ${item.quantity} | Price: \$${item.price.toStringAsFixed(2)}',
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon:
+                                          Icon(Icons.edit, color: Colors.blue),
+                                      onPressed: () => _editInventoryItem(
+                                        tile,
+                                        item,
+                                        () => setState(() {}),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon:
+                                          Icon(Icons.delete, color: Colors.red),
+                                      onPressed: () => _removeInventoryItem(
+                                        tile,
+                                        item,
+                                        () => setState(() {}),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: ElevatedButton(
+                      onPressed: () => _addInventoryItem(
+                        tile,
+                        () => setState(() {}),
+                      ),
+                      child: Text('Add New Item'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _addInventoryItem(PlacedTileData tile, VoidCallback updateState) {
+    final nameController = TextEditingController();
+    final quantityController = TextEditingController();
+    final priceController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Add Inventory Item'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(labelText: 'Item Name'),
+              ),
+              TextField(
+                controller: quantityController,
+                decoration: InputDecoration(labelText: 'Quantity'),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: priceController,
+                decoration: InputDecoration(labelText: 'Price'),
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            ElevatedButton(
+              child: Text('Add'),
+              onPressed: () {
+                // Ensure the list is growable
+                if (tile.inventory is! List<InventoryItem>) {
+                  tile.inventory = <InventoryItem>[];
+                }
+
+                final newItem = InventoryItem(
+                  name: nameController.text,
+                  quantity: int.tryParse(quantityController.text) ?? 0,
+                  price: double.tryParse(priceController.text) ?? 0.0,
+                );
+
+                // Explicitly use .add()
+                tile.inventory.add(newItem);
+
+                updateState();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _editInventoryItem(
+      PlacedTileData tile, InventoryItem item, VoidCallback updateState) {
+    final nameController = TextEditingController(text: item.name);
+    final quantityController =
+        TextEditingController(text: item.quantity.toString());
+    final priceController = TextEditingController(text: item.price.toString());
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Edit Inventory Item'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(labelText: 'Item Name'),
+              ),
+              TextField(
+                controller: quantityController,
+                decoration: InputDecoration(labelText: 'Quantity'),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: priceController,
+                decoration: InputDecoration(labelText: 'Price'),
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            ElevatedButton(
+              child: Text('Save'),
+              onPressed: () {
+                item.name = nameController.text;
+                item.quantity = int.tryParse(quantityController.text) ?? 0;
+                item.price = double.tryParse(priceController.text) ?? 0.0;
+
+                updateState();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _removeInventoryItem(
+      PlacedTileData tile, InventoryItem item, VoidCallback updateState) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirm Deletion'),
+          content: Text('Are you sure you want to remove this item?'),
+          actions: [
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: Text('Delete'),
+              onPressed: () {
+                // Use .remove() explicitly
+                tile.inventory.removeWhere((i) => i.id == item.id);
+
+                updateState();
                 Navigator.of(context).pop();
               },
             ),
