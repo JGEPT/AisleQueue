@@ -1,18 +1,23 @@
-//Home screen with no back end
 
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
+import '../widgets/item_menu.dart';
+import '../widgets/categories.dart';
 import '../widgets/aisle_box.dart';
 import '../widgets/bottom_box.dart';
 import '../widgets/center_aisle.dart';
 import '../widgets/circle_num.dart';
 import '../widgets/left_box.dart';
 import '../widgets/right_box.dart';
-import '../utils/app_colors.dart';
-import '../widgets/item_menu.dart';
 
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class _HomeScreenState extends State<HomeScreen> {
+  bool _isItemMenuVisible = false; // Track visibility of the ItemMenu
+  String? _currentCategory; // Track which category should be shown
 
   @override
   Widget build(BuildContext context) {
@@ -57,16 +62,19 @@ class HomeScreen extends StatelessWidget {
           _buildBottomBoxes(),
           _buildCircleNumbers(),
           _buildItemMenu(),
+
+          // Conditionally add ItemMenu widget to the stack
+          if (_isItemMenuVisible)
+            _buildItemMenu(), // This is called as part of the widget tre
         ],
       ),
     );
   }
 
-  // Helper methods to organize the numerous positioned widgets
+  // Updated aisle 33 with GestureDetector
   Widget _buildStandaloneComponents() {
     return Stack(
       children: [
-        //32
         Positioned(
           top: 65,
           left: 265,
@@ -76,34 +84,74 @@ class HomeScreen extends StatelessWidget {
             color: Color(0xff5A967A),
           ),
         ),
-        //33
         Positioned(
           top: 65,
           left: 150,
-          child: Container(
-            height: 30,
-            width: 85,
-            color: Color(0xff5A967A),
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                _isItemMenuVisible = true; // Show the ItemMenu
+                _currentCategory = 'Fish'; // Set category to Fish for aisle 33
+              });
+            },
+            child: Container(
+              height: 30,
+              width: 85,
+              color: Color(0xff5A967A),
+            ),
           ),
         ),
         //34
         Positioned(
           top: 65,
           left: 0,
-          child: Container(
-            height: 90,
-            width: 30,
-            color: Color(0xff5A967A),
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                _isItemMenuVisible = true; // Show the ItemMenu
+                _currentCategory = 'Chicken'; // Set category to Chicken for aisle 34
+              });
+            },
+            child: Container(
+              height: 90,
+              width: 30,
+              color: Color(0xff5A967A),
+            ),
           ),
         ),
         //34
         Positioned(
           top: 65,
           left: 30,
-          child: Container(
-            height: 30,
-            width: 75,
-            color: Color(0xff5A967A),
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                _isItemMenuVisible = true; // Show the ItemMenu
+                _currentCategory = 'Chicken'; // Set category to Chicken for aisle 34
+              });
+            },
+            child: Container(
+              height: 30,
+              width: 75,
+              color: Color(0xff5A967A),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 65,
+          left: 30,
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                _isItemMenuVisible = true; // Show the ItemMenu
+                _currentCategory = 'Chicken'; // Set category to Other
+              });
+            },
+            child: Container(
+              height: 30,
+              width: 75,
+              color: Color(0xff5A967A),
+            ),
           ),
         ),
         //36
@@ -116,9 +164,11 @@ class HomeScreen extends StatelessWidget {
             color: Color(0xff5A967A),
           ),
         ),
+
       ],
     );
   }
+
 
   // Similar helper methods for other component groups
   Widget _buildAisleBoxes() {
@@ -252,29 +302,28 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // item menu visibility
-  Widget _buildItemMenu() {
-    return Stack(
-      children: [
-        Visibility
-        (
-        visible: true, //visibility  - show
-        child: ItemMenu(
-          top: 360,
-          left: 80,
-          category: 'Baking needs',
-          items: [
-            {'name': 'Maya All-Purpose Flour (1kg)', 'price': '70'},
-            {'name': 'Baking Soda (250g)', 'price': '50'},
-            {'name': 'McCormick Vanilla Extract (120ml)', 'price': '150'},
-            {'name': 'Maya Brown Sugar (1kg)', 'price': '65'},
-          ],
-          categoryTop: 40,
-          itemTop: 90,
-        ),
 
-      ),
-  ],
+  // The ItemMenu widget that appears when toggled
+  Widget _buildItemMenu() {
+    List<Map<String, String>> items = [];
+
+    // Dynamically load the items based on the category
+    if (_currentCategory == 'Fish') {
+      items = fishItems;
+    } else if (_currentCategory == 'Chicken') {
+      items = chickenItems;
+    } else if (_currentCategory == 'Other') {
+      items = otherItems;
+    }
+
+    // Return the ItemMenu widget with the loaded items
+    return ItemMenu(
+      top: 100,
+      left: 45,
+      category: _currentCategory ?? '',
+      items: items,
+      categoryTop: 40,
+      itemTop: 90,
     );
   }
 }
