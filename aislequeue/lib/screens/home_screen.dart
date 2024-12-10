@@ -1,3 +1,5 @@
+//Home screen with no back end
+
 import 'package:flutter/material.dart';
 import '../widgets/aisle_box.dart';
 import '../widgets/bottom_box.dart';
@@ -6,7 +8,8 @@ import '../widgets/circle_num.dart';
 import '../widgets/left_box.dart';
 import '../widgets/right_box.dart';
 import '../utils/app_colors.dart';
-import '../widgets/menu_widget.dart';
+import '../widgets/item_menu.dart';
+
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -24,7 +27,7 @@ class HomeScreen extends StatelessWidget {
           const Positioned(
             top: 10,
             left: 20,
-            child: CustomMenu(),
+            child: Icon(Icons.menu),
           ),
           // Search Bar
           Positioned(
@@ -53,6 +56,7 @@ class HomeScreen extends StatelessWidget {
           _buildRightBoxes(),
           _buildBottomBoxes(),
           _buildCircleNumbers(),
+          _buildItemMenu(),
         ],
       ),
     );
@@ -121,12 +125,12 @@ class HomeScreen extends StatelessWidget {
     return Stack(
       children: [
         // Aisle Boxes 1-10
-        AisleBox(top: 365, left: 55), // Box 1 415
+        AisleBox(top: 365, left: 55), // Box 1
         AisleBox(top: 340, left: 55), // Box 2
         AisleBox(top: 365, right: 60), // Box 3
         AisleBox(top: 340, right: 60), // Box 4
         AisleBox(top: 425, left: 55), // Box 5
-        AisleBox(top: 400, left: 55), // Box 6 450
+        AisleBox(top: 400, left: 55), // Box 6
         AisleBox(top: 425, right: 60), // Box 7
         AisleBox(top: 400, right: 60), // Box 8
         AisleBox(top: 485, left: 55), // Box 9
@@ -247,18 +251,30 @@ class HomeScreen extends StatelessWidget {
       ],
     );
   }
-}
 
-class Menu extends StatelessWidget {
-  const Menu({super.key});
+  // item menu visibility
+  Widget _buildItemMenu() {
+    return Stack(
+      children: [
+        Visibility
+        (
+        visible: true, //visibility  - show
+        child: ItemMenu(
+          top: 360,
+          left: 80,
+          category: 'Baking needs',
+          items: [
+            {'name': 'Maya All-Purpose Flour (1kg)', 'price': '70'},
+            {'name': 'Baking Soda (250g)', 'price': '50'},
+            {'name': 'McCormick Vanilla Extract (120ml)', 'price': '150'},
+            {'name': 'Maya Brown Sugar (1kg)', 'price': '65'},
+          ],
+          categoryTop: 40,
+          itemTop: 90,
+        ),
 
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: Icon(Icons.menu),
-      onPressed: () {
-        // Define menu button behavior here
-      },
+      ),
+  ],
     );
   }
 }
