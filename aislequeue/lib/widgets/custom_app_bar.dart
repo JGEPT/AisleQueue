@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../screens/layout_screen.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
@@ -8,7 +9,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       elevation: 0,
       leading: IconButton(
         icon: Icon(Icons.menu, color: Colors.teal),
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => LayoutsScreen()),
+          );
+        },
       ),
       title: Row(
         mainAxisAlignment: MainAxisAlignment.center,

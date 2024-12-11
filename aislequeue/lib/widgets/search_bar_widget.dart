@@ -30,7 +30,7 @@ class SearchBar extends StatelessWidget {
         child: TextField(
           controller: controller,
           decoration: InputDecoration(
-            hintText: 'Search categories...',
+            hintText: 'Search',
             prefixIcon: const Icon(Icons.search, color: Colors.green),
             suffixIcon: controller.text.isNotEmpty
                 ? IconButton(

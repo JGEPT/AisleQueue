@@ -10,8 +10,11 @@ import '../models/inventory_items.dart';
 import '../services/inventory_service.dart';
 
 class LayoutCreator extends StatefulWidget {
-  const LayoutCreator({super.key, required this.title});
   final String title;
+  final LayoutData? layout; // Accept the layout data
+
+  const LayoutCreator({Key? key, required this.title, this.layout})
+      : super(key: key);
 
   @override
   State<LayoutCreator> createState() => _LayoutCreatorState();
@@ -23,7 +26,6 @@ class _LayoutCreatorState extends State<LayoutCreator> {
   static const int gridRows = 32;
   static const double gridCellSize = 40;
 
-  final List<PlacedTileData> _placedTiles = [];
   bool _isPlacementMode = false;
   bool _isSelectingFirstPoint = false;
   bool _isSelectingSecondPoint = false;
@@ -39,11 +41,13 @@ class _LayoutCreatorState extends State<LayoutCreator> {
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
   String? _currentLoadedLayoutName; // Track the currently loaded layout name
+  late List<PlacedTileData> _placedTiles;
 
   @override
   void initState() {
     super.initState();
-    _transformationController.addListener(_onTransformationChanged);
+    _placedTiles = widget.layout?.placedTiles ??
+        []; // Use the loaded layout or an empty list
   }
 
   @override
@@ -953,17 +957,6 @@ class _LayoutCreatorState extends State<LayoutCreator> {
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          // New Layout Button
-          Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: FloatingActionButton(
-              onPressed: _createNewLayout,
-              tooltip: 'Create New Layout',
-              heroTag: 'newLayoutButton',
-              child: const Icon(Icons.add),
-            ),
-          ),
-          // Edit/Remove Button
           Padding(
             padding: const EdgeInsets.only(right: 10),
             child: FloatingActionButton(
@@ -1018,24 +1011,6 @@ class _LayoutCreatorState extends State<LayoutCreator> {
               heroTag: 'saveButton',
               child: const Icon(Icons.save),
             ),
-          ),
-          // Load Layout Button
-          Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: FloatingActionButton(
-              onPressed: _loadLayout,
-              tooltip: 'Load Layout',
-              heroTag: 'loadButton',
-              child: const Icon(Icons.folder_open),
-            ),
-          ),
-          // Delete Layout Button
-          FloatingActionButton(
-            onPressed: _deleteLayout,
-            tooltip: 'Delete Layout',
-            heroTag: 'deleteButton',
-            backgroundColor: Colors.red,
-            child: const Icon(Icons.delete),
           ),
         ],
       ),
