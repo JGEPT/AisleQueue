@@ -102,7 +102,7 @@ class _LayoutCreatorState extends State<LayoutCreator> {
         _currentGridX = (localPosition.dx / gridCellSize).floor();
         if (deviceType == 'Phone') {
           _currentGridY =
-              ((localPosition.dy - ((gridCellSize / _currentScale) * 3.50)) /
+              ((localPosition.dy - ((gridCellSize / _currentScale) * 4.25)) /
                       gridCellSize)
                   .floor();
         } else {
@@ -923,7 +923,7 @@ class _LayoutCreatorState extends State<LayoutCreator> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: widget.title),
+      appBar: CustomAppBar(),
       body: Column(
         children: [
           custom_widgets.SearchBar(

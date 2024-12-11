@@ -12,16 +12,17 @@ class InventoryItem {
   }) : id = id ?? DateTime.now().millisecondsSinceEpoch.toString();
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'quantity': quantity,
-    'price': price,
-  };
+        'id': id,
+        'name': name,
+        'quantity': quantity,
+        'price': price,
+      };
 
   factory InventoryItem.fromJson(Map<String, dynamic> json) => InventoryItem(
-    id: json['id'],
-    name: json['name'],
-    quantity: json['quantity'],
-    price: json['price'],
-  );
+      id: json['id'],
+      name: json['name'],
+      quantity: json['quantity'],
+      price: (json['price'] is int)
+          ? (json['price'] as int).toDouble()
+          : json['price']);
 }

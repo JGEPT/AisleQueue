@@ -1,50 +1,40 @@
 import 'package:flutter/material.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final String title;
-
-  const CustomAppBar({Key? key, required this.title}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: IconButton(
+        icon: Icon(Icons.menu, color: Colors.teal),
+        onPressed: () {},
+      ),
       title: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.shopping_bag, color: Colors.black),
-          const SizedBox(width: 8),
-          Text(title),
+          Container(
+            width: 250, // Makes the container span the full width
+            height: 25, // Adjust the height as needed
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/BannerLogo.png'),
+                fit: BoxFit
+                    .cover, // This ensures the image covers the entire container
+              ),
+            ),
+          )
         ],
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.shopping_cart),
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Cart button pressed!')),
-            );
-          },
-        ),
-        PopupMenuButton<String>(
-          onSelected: (value) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Selected: $value')),
-            );
-          },
-          itemBuilder: (BuildContext context) {
-            return {'Option 1', 'Option 2', 'Option 3'}
-                .map((String choice) {
-              return PopupMenuItem<String>(
-                value: choice,
-                child: Text(choice),
-              );
-            }).toList();
-          },
+          icon: Icon(Icons.shopping_cart, color: Colors.teal),
+          onPressed: () {},
         ),
       ],
     );
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => Size.fromHeight(kToolbarHeight);
 }
